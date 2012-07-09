@@ -4,10 +4,14 @@ use warnings;
 use base qw/Exporter/;
 use Blosxom::Header;
 
-our @EXPORT = qw( response res );
+our @EXPORT_OK = qw( response );
 
 sub response { __PACKAGE__->instance }
-*res = \&response;
+
+sub init {
+    my ( $class, $c, $conf ) = @_;
+    $c->add_method( response => \&response );
+}
 
 {
     my $instance;

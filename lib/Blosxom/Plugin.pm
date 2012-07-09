@@ -9,13 +9,27 @@ our $VERSION = '0.00001';
 __PACKAGE__->load_plugins( qw/Response Request/ );
 
 sub load_plugins {
-    my ( $class, @plugins ) = @_;
-    for my $plugin ( @plugins ) {
-        $plugin = __PACKAGE__ . "::$plugin";
-        eval "require $plugin";
-        croak( $@ ) if $@;
-        $plugin->import;
+    my $c = shift;
+    while ( @_ ) {
+        my $plugin = shift;
+        my $conf = shift if ref $_[0] eq 'HASH';
+        $c->load_plugin( $plugin, $conf );
     }
+}
+
+sub load_plugin {
+    my ( $c, $plugin, $conf ) = @_;
+    $plugin = __PACKAGE__ . "::$plugin";
+    eval "require $plugin";
+    croak( $@ ) if $@;
+    $plugin->init( $c, $conf );
+}
+
+sub add_method {
+    my ( $c, $method, $code ) = @_;
+    $method = "$c\::$method";
+    no strict 'refs';
+    *$method = $code;
 }
 
 1;

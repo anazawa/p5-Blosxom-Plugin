@@ -1,9 +1,11 @@
 package Blosxom::Plugin::Foo;
 use strict;
 use warnings;
-use base qw/Exporter/;
 
-our @EXPORT = qw( foo );
+sub init {
+    my ( $class, $c, $conf ) = @_;
+    $c->add_method( foo => \&foo );
+}
 
 sub foo {
     my $class = shift;
