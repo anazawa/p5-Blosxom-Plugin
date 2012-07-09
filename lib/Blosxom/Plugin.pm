@@ -2,11 +2,21 @@ package Blosxom::Plugin;
 use 5.008_009;
 use strict;
 use warnings;
-use Blosxom::Header;
+use Carp qw/croak/;
 
 our $VERSION = '0.00001';
 
-sub response { Blosxom::Header->instance }
+__PACKAGE__->load_plugins( qw/Response Request/ );
+
+sub load_plugins {
+    my ( $class, @plugins ) = @_;
+    for my $plugin ( @plugins ) {
+        $plugin = __PACKAGE__ . "::$plugin";
+        eval "require $plugin";
+        croak( $@ ) if $@;
+        $plugin->import;
+    }
+}
 
 1;
 
