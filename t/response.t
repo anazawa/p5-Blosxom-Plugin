@@ -1,6 +1,6 @@
 use strict;
 use Blosxom::Plugin::Response;
-use Test::More tests => 4;
+use Test::More tests => 10;
 
 {
     package blosxom;

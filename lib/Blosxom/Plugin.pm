@@ -18,11 +18,12 @@ sub load_plugins {
 }
 
 sub load_plugin {
-    my ( $context_class, $plugin, $config ) = @_;
-    $plugin = __PACKAGE__ . "::$plugin";
-    eval "require $plugin";
-    croak( $@ ) if $@;
-    $plugin->init( $context_class, $config );
+    my $context_class = shift;
+    my $plugin = join '::', __PACKAGE__, shift;
+    my $config = shift if ref $_[0] eq 'HASH';
+    ( my $file = $plugin ) =~ s{::}{/}g;
+    require "$file.pm";
+    $plugin->begin( $context_class, $config ) if $plugin->can( 'begin' );
 }
 
 sub add_method {

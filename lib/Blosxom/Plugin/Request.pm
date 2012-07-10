@@ -2,9 +2,10 @@ package Blosxom::Plugin::Request;
 use strict;
 use warnings;
 
-sub init {
+sub begin {
     my ( $class, $c, $conf ) = @_;
-    $c->add_method( request => sub { __PACKAGE__->instance } );
+    my $method = sub { __PACKAGE__->instance };
+    $c->add_method( $_ => $method ) for qw( request req );
 }
 
 my $instance;
@@ -18,8 +19,8 @@ sub instance {
     require CGI;
 
     my %self = (
-        cgi     => CGI->new,
-        env     => \%ENV,
+        cgi => CGI->new,
+        env => \%ENV,
         flavour => $blosxom::flavour,
         path_info => {
             full   => $blosxom::path_info,

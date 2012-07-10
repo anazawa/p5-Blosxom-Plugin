@@ -1,5 +1,7 @@
 use strict;
-use Test::More tests => 4;
+use FindBin;
+use lib "$FindBin::Bin/lib";
+use Test::More tests => 3;
 
 package blosxom;
 
@@ -21,15 +23,15 @@ sub last {
     $c->foo;
 }
 
-package bar;
-use Blosxom::Plugin::Response qw/response/;
+#package bar;
+#use Blosxom::Plugin::Response qw/response/;
 
-sub start { !$blosxom::static_entries }
+#sub start { !$blosxom::static_entries }
 
-sub last {
-    my $class = shift;
-    $class->response->header->set( Bar => 'baz' );
-}
+#sub last {
+#    my $class = shift;
+#    $class->response->header->set( Bar => 'baz' );
+#}
 
 package baz;
 use base qw/Blosxom::Plugin/;
@@ -52,7 +54,7 @@ sub last {
 
 package main;
 
-my @plugins = qw( foo bar baz );
+my @plugins = qw( foo baz );
 local $ENV{REQUEST_METHOD} = 'GET';
 
 for my $plugin ( @plugins ) {
@@ -65,7 +67,7 @@ for my $plugin ( @plugins ) {
 
 is_deeply $blosxom::header, {
     -foo => 'bar',
-    -bar => 'baz',
+    #-bar => 'baz',
     -baz => 'qux',
     -status => '304 Not Modified',
 };
