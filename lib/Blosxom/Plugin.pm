@@ -9,25 +9,25 @@ our $VERSION = '0.00001';
 __PACKAGE__->load_plugins( qw/Response Request/ );
 
 sub load_plugins {
-    my $c = shift;
+    my $context_class = shift;
     while ( @_ ) {
         my $plugin = shift;
-        my $conf = shift if ref $_[0] eq 'HASH';
-        $c->load_plugin( $plugin, $conf );
+        my $config = shift if ref $_[0] eq 'HASH';
+        $context_class->load_plugin( $plugin, $config );
     }
 }
 
 sub load_plugin {
-    my ( $c, $plugin, $conf ) = @_;
+    my ( $context_class, $plugin, $config ) = @_;
     $plugin = __PACKAGE__ . "::$plugin";
     eval "require $plugin";
     croak( $@ ) if $@;
-    $plugin->init( $c, $conf );
+    $plugin->init( $context_class, $config );
 }
 
 sub add_method {
-    my ( $c, $method, $code ) = @_;
-    $method = "$c\::$method";
+    my ( $class, $method, $code ) = @_;
+    $method = "$class\::$method";
     no strict 'refs';
     *$method = $code;
 }

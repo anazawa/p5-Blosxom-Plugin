@@ -31,6 +31,30 @@ sub init {
     sub content_type { shift->header->type( @_ )   }
     sub cookies      { shift->header->cookie( @_ ) }
 
+    sub content_length {
+        my $header = shift->header;
+        return $header->set( Content_Length => shift ) if @_;
+        $header->get( 'Content-Length' );
+    }
+
+    sub content_encoding {
+        my $header = shift->header;
+        return $header->set( Content_Encoding => shift ) if @_;
+        $header->get( 'Content-Encoding' );
+    }
+
+    sub location {
+        my $header = shift->header;
+        return $header->set( Location => shift ) if @_;
+        $header->get( 'Location' );
+    }
+
+    sub redirect {
+        my $header = shift->header;
+        $header->set( Location => shift );
+        $header->status( shift || 301 );
+    }
+
     sub body { $blosxom::output }
 }
 
