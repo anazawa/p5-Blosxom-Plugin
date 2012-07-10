@@ -9,7 +9,8 @@ sub start { !$blosxom::static_entries }
 
 sub last {
     my $class = shift;
-    $blosxom::output = $class->data_section->{'404.html'};
+    #$blosxom::output = $class->data_section->{'404.html'};
+    $blosxom::output = $class->data_section->get( '404.html' );
 }
 
 1;

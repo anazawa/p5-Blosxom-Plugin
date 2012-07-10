@@ -6,7 +6,7 @@ use Carp qw/croak/;
 
 our $VERSION = '0.00001';
 
-__PACKAGE__->load_plugins( qw/Response Request/ );
+__PACKAGE__->load_plugins( qw/Util Response Request/ );
 
 sub load_plugins {
     my $context_class = shift;
@@ -23,7 +23,7 @@ sub load_plugin {
     my $config = shift if ref $_[0] eq 'HASH';
     ( my $file = $plugin ) =~ s{::}{/}g;
     require "$file.pm";
-    $plugin->begin( $context_class, $config ) if $plugin->can( 'begin' );
+    $plugin->begin( $context_class, $config );
 }
 
 sub add_method {
