@@ -23,16 +23,6 @@ sub last {
     $c->foo;
 }
 
-#package bar;
-#use Blosxom::Plugin::Response qw/response/;
-
-#sub start { !$blosxom::static_entries }
-
-#sub last {
-#    my $class = shift;
-#    $class->response->header->set( Bar => 'baz' );
-#}
-
 package baz;
 use base qw/Blosxom::Plugin/;
 

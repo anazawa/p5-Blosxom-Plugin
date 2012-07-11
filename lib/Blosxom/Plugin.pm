@@ -48,14 +48,35 @@ Blosxom::Plugin - Base class of Blosxom plugins
   use warnings;
   use base 'Blosxom::Plugin';
 
+  __PACKAGE__->load_plugin( 'DataSection' );
+
   sub start { !$blosxom::static_entries }
 
   sub last {
       my $class = shift;
       $class->response->status( 304 );
+      my $path_info = $class->request->path_info;
+      my $month = $class->util->num2month( 7 ) # Jul;
+      my $template = $class->data_section->get( 'foo.html' );
   }
 
   1;
+
+  __DATA__
+
+  @@ foo.html
+
+  <!DOCTYPE html>
+  <html>
+  <head>
+    <meta charset="utf-8">
+    <title>Foo</title>
+  </head>
+  <body>
+  <h1>hello, world</h1>
+  </body>
+  </html>
+
 
 =head1 DESCRIPTION
 
@@ -65,17 +86,23 @@ Base class of Blosxom plugins.
 
 =over 4
 
-=item $class->response
+=item response, res
 
-Returns a L<Blosxom::Header> object instance.
+Returns a L<Blosxom::Plugin::Response> object.
 
-=item $class->request
+=item request, req
 
-Not implemented yet.
+Returns a L<Blosxom::Plugin::Request> object.
 
-=item $class->config
+=item util
 
-Not implemented yet.
+Returns a L<Blosxom::Plugin::Util> object.
+
+=item load_plugin( $plugin )
+
+=item load_plugins( @plugins )
+
+=item add_method( $method => $coderef )
 
 =back
 
@@ -85,7 +112,7 @@ L<Blosxom 2.0.0|http://blosxom.sourceforge.net/> or higher.
 
 =head1 SEE ALSO
 
-L<Blosxom::Header>
+L<Amon2>
 
 =head1 ACKNOWLEDGEMENT
 

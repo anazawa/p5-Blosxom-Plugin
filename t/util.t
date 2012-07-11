@@ -24,4 +24,3 @@ can_ok $util, qw( month2num num2month );
 
 is $util->month2num( 'Jul' ), '07';
 is $util->num2month( 7 ), 'Jul';
-

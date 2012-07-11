@@ -11,17 +11,20 @@ use Test::More tests => 13;
     our $path_info_yr     = '2012';
 }
 
-$ENV{QUERY_STRING}    = 'game=chess&game=checkers&weather=dull';
-$ENV{HTTP_COOKIE}     = 'foo=123; bar=qwerty; baz=wibble; qux=a1';
-$ENV{REQUEST_METHOD}  = 'GET';
-$ENV{CONTENT_TYPE}    = 'utf-8';
-$ENV{HTTP_REFERER}    = 'http://blosxom.com';
-$ENV{HTTP_USER_AGENT} = 'Chrome';
+local $ENV{QUERY_STRING}    = 'game=chess&game=checkers&weather=dull';
+local $ENV{HTTP_COOKIE}     = 'foo=123; bar=qwerty; baz=wibble; qux=a1';
+local $ENV{REQUEST_METHOD}  = 'GET';
+local $ENV{CONTENT_TYPE}    = 'utf-8';
+local $ENV{HTTP_REFERER}    = 'http://blosxom.com';
+local $ENV{HTTP_USER_AGENT} = 'Chrome';
 
 my $plugin = 'Blosxom::Plugin::Request';
 my $req = $plugin->instance;
 isa_ok $req, $plugin;
-can_ok $req, qw( method cookies );
+can_ok $req, qw(
+    method cookies content_type referer user_agent address
+    remote_host cookies param path_info
+);
 
 is $req->method,       'GET';
 is $req->content_type, 'utf-8';

@@ -1,6 +1,6 @@
 use strict;
 use Blosxom::Plugin::Response;
-use Test::More tests => 10;
+use Test::More tests => 11;
 
 {
     package blosxom;
@@ -8,8 +8,14 @@ use Test::More tests => 10;
     our $output = 'foo';
 }
 
-my $res = Blosxom::Plugin::Response->instance;
-can_ok $res, qw( body header status content_type cookies );
+my $plugin = 'Blosxom::Plugin::Response';
+my $res = $plugin->instance;
+isa_ok $res, $plugin;
+can_ok $res, qw(
+    body header status content_type cookies redirect location
+    content_length content_encoding
+);
+
 is $res->body, 'foo';
 
 isa_ok $res->header, 'Blosxom::Header';
