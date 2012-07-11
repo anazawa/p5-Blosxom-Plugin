@@ -118,7 +118,7 @@ Returns a reference to any existing instance or C<undef> if none is defined.
 
 =head1 SEE ALSO
 
-L<Blosxom::Plugin>, L<Plack::Request>, L<Class:Singleton>
+L<Blosxom::Plugin>, L<Plack::Request>, L<Class::Singleton>
 
 =head1 AUTHOR
 
