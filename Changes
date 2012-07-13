@@ -1,6 +1,6 @@
 Revision history for Perl extension Blosxom::Plugin.
 
-0.00003  Jul 14th, 2012
+0.00004  Jul 14th, 2012
   - [Request] Add user(), server_protocol() and uploads()
   - [Response] body() become mutable
   - tests requires Data::Section::Simple
