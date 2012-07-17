@@ -1,5 +1,7 @@
 Revision history for Perl extension Blosxom::Plugin.
 
+  - [Request] Rename server_protocol() to protocol()
+
 0.00005  Jul 14th, 2012
   - Add Blosxom::Plugin::Request::Upload
 
