@@ -16,9 +16,25 @@ sub instance {
     return $instance if defined $instance;
 
     my %self = (
-        month2num => \%blosxom::month2num,
-        num2month => \@blosxom::num2month,
+        month2num   => \%blosxom::month2num,
+        num2month   => \@blosxom::num2month,
     );
+
+    # Provide backward compatibility for Blosxom 2.0
+    if ( blosxom->can( 'blosxom_html_escape' ) ) {
+        $self{encode_html} = \&blosxom::blosxom_html_escape;
+    }
+    else {
+        $self{encode_html} = sub {
+            my $str = shift;
+            $str =~ s/&/&amp;/g;
+            $str =~ s/>/&gt;/g;
+            $str =~ s/</&lt;/g;
+            $str =~ s/"/&quot;/g;
+            $str =~ s/'/&apos;/g;
+            $str;
+        };
+    }
     
     $instance = bless \%self;
 }
@@ -27,6 +43,11 @@ sub has_instance { $instance }
 
 sub month2num { shift->{month2num}->{ $_[0] } }
 sub num2month { shift->{num2month}->[ $_[0] ] }
+
+sub encode_html {
+    my ( $self, $str ) = @_;
+    $self->{encode_html}->( $str );
+}
 
 1;
 
@@ -68,6 +89,8 @@ Returns a reference to any existing instance or C<undef> if none is defined.
 =item $util->num2month
 
 =item $util->month2num
+
+=item $util->encode_html
 
 =back
 

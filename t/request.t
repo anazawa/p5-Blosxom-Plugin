@@ -1,6 +1,6 @@
 use strict;
 use Blosxom::Plugin::Request;
-use Test::More tests => 15;
+use Test::More tests => 17;
 
 {
     package blosxom;
@@ -9,6 +9,7 @@ use Test::More tests => 15;
     our $path_info_mo_num = '07';
     our $path_info_da     = '10';
     our $path_info_yr     = '2012';
+    our $url = 'http://localhost/blosxom.cgi';
 }
 
 local $ENV{QUERY_STRING}    = 'game=chess&game=checkers&weather=dull';
@@ -22,8 +23,8 @@ my $plugin = 'Blosxom::Plugin::Request';
 my $req = $plugin->instance;
 isa_ok $req, $plugin;
 can_ok $req, qw(
-    method cookies content_type referer user_agent address
-    remote_host cookies param path_info protocol user upload
+    method cookie content_type referer user_agent address
+    remote_host param path_info protocol user upload base
 );
 
 is $req->method,       'GET';
@@ -34,14 +35,14 @@ is $req->address,      '127.0.0.1';
 is $req->remote_host,  'localhost';
 is $req->protocol,  'HTTP/1.0';
 is $req->user, undef;
+is $req->base, 'http://localhost/blosxom.cgi';
 
-is $req->cookies( 'bar' ), 'qwerty';
+is $req->cookie( 'bar' ), 'qwerty';
+is_deeply [ sort $req->cookie ], [ qw/bar baz foo qux/ ];
 
 is $req->param( 'game' ), 'chess';
-my @got = sort $req->param( 'game' );
-is_deeply \@got, [ 'checkers', 'chess' ];
-@got = sort $req->param;
-is_deeply \@got, [ 'game', 'weather' ];
+is_deeply [ sort $req->param( 'game' ) ], [ 'checkers', 'chess' ];
+is_deeply [ sort $req->param ], [ 'game', 'weather' ];
 
 is_deeply $req->path_info, {
     full   => '/foo/bar.html',

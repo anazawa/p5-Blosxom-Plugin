@@ -28,6 +28,7 @@ sub instance {
             mo     => $blosxom::path_info_mo,
             da     => $blosxom::path_info_da,
         },
+        base => $blosxom::url,
         upload => {},
     );
 
@@ -35,6 +36,10 @@ sub instance {
 }
 
 sub has_instance { $instance }
+
+sub path_info { shift->{path_info} }
+sub flavour   { shift->{flavour}   }
+sub base      { shift->{base}      }
 
 sub method       { shift->{cgi}->request_method   }
 sub content_type { shift->{cgi}->content_type     }
@@ -45,7 +50,7 @@ sub user_agent   { shift->{cgi}->user_agent( @_ ) }
 sub protocol     { shift->{cgi}->server_protocol  }
 sub user         { shift->{cgi}->remote_user      }
 
-sub cookies {
+sub cookie {
     my ( $self, $name ) = @_;
     $self->{cgi}->cookie( $name );
 }
@@ -91,9 +96,6 @@ sub upload {
     wantarray ? @uploads : $uploads[0];
 }
 
-sub path_info { shift->{path_info} }
-sub flavour   { shift->{flavour}   }
-
 1;
 
 __END__
@@ -112,7 +114,7 @@ Blosxom::Plugin::Request - Object representing CGI request
   my $path_info_mo_num = $request->path_info->{mo_num}; # '07'
   my $flavour = $request->flavour; # rss
   my $page = $request->param( 'page' ); # 12
-  my $id = $request->cookies( 'ID' ); # 123456
+  my $id = $request->cookie( 'ID' ); # 123456
 
 =head1 DESCRIPTION
 
@@ -141,11 +143,16 @@ Returns a reference to any existing instance or C<undef> if none is defined.
 
 =over 4
 
+=item $request->base
+
 =item $request->path_info
 
 =item $request->flavour
 
-=item $request->cookies
+=item $request->cookie
+
+  my $cookie = $request->cookie( 'name' );
+  my @cookies = $request->cookie;
 
 =item $request->param
 
