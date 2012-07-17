@@ -23,7 +23,7 @@ my $req = $plugin->instance;
 isa_ok $req, $plugin;
 can_ok $req, qw(
     method cookies content_type referer user_agent address
-    remote_host cookies param path_info protocol user uploads
+    remote_host cookies param path_info protocol user upload
 );
 
 is $req->method,       'GET';

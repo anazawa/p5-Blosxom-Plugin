@@ -6,7 +6,8 @@ use CGI;
 
 sub begin {
     my ( $class, $c ) = @_;
-    $c->add_method( $_ => \&instance ) for qw( request req );
+    my $method = \&instance;
+    $c->add_method( $_ => $method ) for qw( request req );
 }
 
 my $instance;
@@ -27,6 +28,7 @@ sub instance {
             mo     => $blosxom::path_info_mo,
             da     => $blosxom::path_info_da,
         },
+        upload => {},
     );
 
     $instance = bless \%self;
@@ -50,29 +52,41 @@ sub cookies {
 
 sub param {
     my ( $self, $key ) = @_;
-    $self->{cgi}->param( $key || () );
+    return $self->{cgi}->param( $key ) if $key;
+    $self->{cgi}->param;
 }
 
-sub uploads {
+sub upload {
     my $self  = shift;
     my $field = shift;
-    my $cgi = $self->{cgi};
+    my $upload = $self->{upload};
+    my $cgi   = $self->{cgi};
 
-    if ( my $uploads = $self->{uploads}{$field} ) {
+    unless ( $field ) {
+        my @fields;
+        for my $name ( $cgi->param ) {
+            next unless ref $cgi->param( $name );
+            next unless defined fileno $cgi->param( $name );
+            push @fields, $name;
+        }
+        return @fields;
+    }
+
+    if ( my $uploads = $upload->{ $field } ) {
         return wantarray ? @{ $uploads } : $uploads->[0];
     } 
 
     my @uploads;
-    for my $filename ( $cgi->param( $field ) ) {
+    for my $filename ( $cgi->upload( $field ) ) {
         push @uploads, Blosxom::Plugin::Request::Upload->new(
             filename => "$filename",
-            fh       => $filename,
+            fh       => $filename->handle,
             tempname => $cgi->tmpFileName( $filename ),
             headers  => $cgi->uploadInfo( $filename ),
         );
     }
 
-    $self->{uploads}{$field} = \@uploads;
+    $upload->{ $field } = \@uploads;
 
     wantarray ? @uploads : $uploads[0];
 }
@@ -135,6 +149,10 @@ Returns a reference to any existing instance or C<undef> if none is defined.
 
 =item $request->param
 
+  my $value = $request->param( 'foo' );
+  my @values = $request->param( 'foo' );
+  my @fields = $request->param;
+
 =item $request->method
 
 Returns the method used to access your script, usually one of C<POST>,
@@ -147,7 +165,7 @@ C<multipart/form-data> or C<application/x-www-form-urlencoded>.
 
 =item $request->referer
 
-Return the URL of the page the browser was viewing prior to fetching your
+Returns the URL of the page the browser was viewing prior to fetching your
 script. Not available for all browsers.
 
 =item $request->remote_host
@@ -179,7 +197,11 @@ if this script is protected (C<REMOTE_USER>).
 
 Returns the protocol (HTTP/1.0 or HTTP/1.1) used for the current request.
 
-=item $request->uploads
+=item $request->upload
+
+  my $upload = $request->upload( 'field' );
+  my @uploads = $request->upload( 'field' );
+  my @fields = $request->upload;
 
 =back
 

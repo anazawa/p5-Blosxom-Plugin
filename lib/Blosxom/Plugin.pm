@@ -6,7 +6,7 @@ use Carp qw/croak/;
 
 our $VERSION = '0.00005';
 
-__PACKAGE__->load_plugins( qw/Util Response Request/ );
+__PACKAGE__->load_plugins( qw/Util Request Response/ );
 
 sub load_plugins {
     my $context_class = shift;

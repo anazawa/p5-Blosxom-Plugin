@@ -102,7 +102,7 @@ Returns a reference to any existing instance or C<undef> if none is defined.
 
 =back
 
-=head2 INSTANCE METHOD
+=head2 INSTANCE METHODS
 
 =over 4
 
