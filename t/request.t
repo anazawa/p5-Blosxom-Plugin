@@ -23,7 +23,7 @@ my $req = $plugin->instance;
 isa_ok $req, $plugin;
 can_ok $req, qw(
     method cookies content_type referer user_agent address
-    remote_host cookies param path_info server_protocol user uploads
+    remote_host cookies param path_info protocol user uploads
 );
 
 is $req->method,       'GET';
@@ -32,7 +32,7 @@ is $req->referer,      'http://blosxom.com';
 is $req->user_agent,   'Chrome';
 is $req->address,      '127.0.0.1';
 is $req->remote_host,  'localhost';
-is $req->server_protocol,  'HTTP/1.0';
+is $req->protocol,  'HTTP/1.0';
 is $req->user, undef;
 
 is $req->cookies( 'bar' ), 'qwerty';

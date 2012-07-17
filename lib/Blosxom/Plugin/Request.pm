@@ -18,7 +18,7 @@ sub instance {
     return $instance if defined $instance;
 
     my %self = (
-        query => CGI->new,
+        cgi => CGI->new,
         flavour => $blosxom::flavour,
         path_info => {
             full   => $blosxom::path_info,
@@ -34,41 +34,41 @@ sub instance {
 
 sub has_instance { $instance }
 
-sub method          { shift->{query}->request_method  }
-sub content_type    { shift->{query}->content_type    }
-sub referer         { shift->{query}->referer         }
-sub remote_host     { shift->{query}->remote_host     }
-sub address         { shift->{query}->remote_addr     }
-sub user_agent      { shift->{query}->user_agent      }
-sub server_protocol { shift->{query}->server_protocol }
-sub user            { shift->{query}->remote_user     }
+sub method       { shift->{cgi}->request_method   }
+sub content_type { shift->{cgi}->content_type     }
+sub referer      { shift->{cgi}->referer          }
+sub remote_host  { shift->{cgi}->remote_host      }
+sub address      { shift->{cgi}->remote_addr      }
+sub user_agent   { shift->{cgi}->user_agent( @_ ) }
+sub protocol     { shift->{cgi}->server_protocol  }
+sub user         { shift->{cgi}->remote_user      }
 
 sub cookies {
     my ( $self, $name ) = @_;
-    $self->{query}->cookie( $name );
+    $self->{cgi}->cookie( $name );
 }
 
 sub param {
     my ( $self, $key ) = @_;
-    $self->{query}->param( $key || () );
+    $self->{cgi}->param( $key || () );
 }
 
 sub uploads {
     my $self  = shift;
     my $field = shift;
-    my $query = $self->{query};
+    my $cgi = $self->{cgi};
 
     if ( my $uploads = $self->{uploads}{$field} ) {
         return wantarray ? @{ $uploads } : $uploads->[0];
     } 
 
     my @uploads;
-    for my $filename ( $query->param( $field ) ) {
+    for my $filename ( $cgi->param( $field ) ) {
         push @uploads, Blosxom::Plugin::Request::Upload->new(
             filename => "$filename",
             fh       => $filename,
-            tempname => $query->tmpFileName( $filename ),
-            headers  => $query->uploadInfo( $filename ),
+            tempname => $cgi->tmpFileName( $filename ),
+            headers  => $cgi->uploadInfo( $filename ),
         );
     }
 
@@ -86,7 +86,7 @@ __END__
 
 =head1 NAME
 
-Blosxom::Plugin::Request - Object represents CGI request
+Blosxom::Plugin::Request - Object representing CGI request
 
 =head1 SYNOPSIS
 
@@ -95,16 +95,16 @@ Blosxom::Plugin::Request - Object represents CGI request
   my $request = Blosxom::Plugin::Request->instance;
 
   my $method = $request->method; # GET
-  my $path_info_mo_num = $request->path_info->{mo_num}; # 07
+  my $path_info_mo_num = $request->path_info->{mo_num}; # '07'
   my $flavour = $request->flavour; # rss
   my $page = $request->param( 'page' ); # 12
   my $id = $request->cookies( 'ID' ); # 123456
 
 =head1 DESCRIPTION
 
-Object represents CGI request.
+Object representing CGI request.
 
-=head2 METHODS
+=head2 CLASS METHODS
 
 =over 4
 
@@ -121,6 +121,12 @@ Returns a current Blosxom::Header object instance or create a new one.
 
 Returns a reference to any existing instance or C<undef> if none is defined.
 
+=back
+
+=head2 INSTANCE METHODS
+
+=over 4
+
 =item $request->path_info
 
 =item $request->flavour
@@ -131,19 +137,47 @@ Returns a reference to any existing instance or C<undef> if none is defined.
 
 =item $request->method
 
+Returns the method used to access your script, usually one of C<POST>,
+C<GET> or C<HEAD>.
+
 =item $request->content_type
+
+Returns the content_type of data submitted in a POST, generally
+C<multipart/form-data> or C<application/x-www-form-urlencoded>.
 
 =item $request->referer
 
+Return the URL of the page the browser was viewing prior to fetching your
+script. Not available for all browsers.
+
 =item $request->remote_host
+
+Returns either the remote host name, or IP address if the former
+is unavailable.
 
 =item $request->user_agent
 
+Returns the C<HTTP_USER_AGENT> variable. If you give this method a single
+argument, it will attempt to pattern match on it, allowing you to do
+something like:
+
+  if ( $request->user_agent( 'Mozilla' ) ) {
+      ...
+  }
+
 =item $request->address
+
+Returns the remote host IP address, or C<127.0.0.1> if the address is
+unavailable (C<REMOTE_ADDR>).
 
 =item $request->user
 
-=item $request->server_protocol
+Returns the authorization/verification name for user verification,
+if this script is protected (C<REMOTE_USER>).
+
+=item $request->protocol
+
+Returns the protocol (HTTP/1.0 or HTTP/1.1) used for the current request.
 
 =item $request->uploads
 

@@ -5,7 +5,8 @@ use Blosxom::Header;
 
 sub begin {
     my ( $class, $c, $conf ) = @_;
-    $c->add_method( $_ => \&instance ) for qw( response res );
+    my $method = \&instance;
+    $c->add_method( $_ => $method ) for qw( response res );
 }
 
 my $instance;
@@ -64,7 +65,7 @@ __END__
 
 =head1 NAME
 
-Blosxom::Plugin::Response - Object represents CGI response
+Blosxom::Plugin::Response - Object representing CGI response
 
 =head1 SYNOPSIS
 
@@ -79,9 +80,9 @@ Blosxom::Plugin::Response - Object represents CGI response
 
 =head1 DESCRIPTION
 
-Object represents CGI response.
+Object representing CGI response.
 
-=head2 METHODS
+=head2 CLASS METHODS
 
 =over 4
 
@@ -99,23 +100,58 @@ one.
 
 Returns a reference to any existing instance or C<undef> if none is defined.
 
+=back
+
+=head2 INSTANCE METHOD
+
+=over 4
+
 =item $response->header
 
 Returns a L<Blosxom::Header> object instance.
 
 =item $response->status
 
+A shortcut for C<< $response->header->status >>.
+
 =item $response->content_type
+
+A shortcut for C<< $response->header->type >>.
 
 =item $response->cookies
 
+A shortcut for C<< $response->header->cookie >>.
+
 =item $response->content_length
+
+A decimal number indicating the size in bytes of the message content.
+
+  $response->content_length( 123 );
 
 =item $response->content_encoding
 
+The Content-Encoding header field is used as a modifier to the media type.
+When present, its value indicates what additional encoding mechanism has been
+applied to the resource.
+
+  $response->content_encoding( 'gzip' );
+
 =item $response->location
 
+Gets and sets the Location header.
+
 =item $response->redirect
+
+Sets redirect URL with an optional status code, which defaults to 302.
+
+  $response->redirect( $url );
+  $response->redirect( $url, 301 );
+
+=item $response->body
+
+Gets and sets HTTP response body.
+
+  $response->body( 'Hello World' );
 
 =back
 
