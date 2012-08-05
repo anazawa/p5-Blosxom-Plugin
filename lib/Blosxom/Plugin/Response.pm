@@ -11,46 +11,51 @@ sub begin {
 
 my $instance;
 
-sub instance {
-    my $class = shift;
-    return $class if ref $class;
-    return $instance if defined $instance;
-    $instance = bless {};
-}
+sub instance { $instance ||= bless {} }
 
 sub has_instance { $instance }
 
-sub header {
-    my $self = shift;
-    $self->{header} ||= Blosxom::Header->instance;
+sub header { shift->{header} ||= Blosxom::Header->instance }
+
+sub status       { shift->header->status( @_ )       }
+sub content_type { shift->header->content_type( @_ ) }
+
+sub cookies {
+    my $self   = shift;
+    my $header = $self->header;
+
+    if ( @_ == 1 ) {
+        return $header->get_cookie( shift );
+    }
+    elsif ( @_ == 2 ) {
+        $header->set_cookie( @_ );
+    }
+
+    return;
 }
 
-sub status       { shift->header->status( @_ ) }
-sub content_type { shift->header->type( @_ )   }
-sub cookies      { shift->header->cookie( @_ ) }
-
 sub content_length {
-    my $header = shift->header;
-    return $header->set( Content_Length => shift ) if @_;
-    $header->get( 'Content-Length' );
+    my $self = shift;
+    return $self->header->{Content_Length} = shift if @_;
+    $self->header->{Content_Length};
 }
 
 sub content_encoding {
-    my $header = shift->header;
-    return $header->set( Content_Encoding => shift ) if @_;
-    $header->get( 'Content-Encoding' );
+    my $self = shift;
+    return $self->header->{Content_Encoding} = shift if @_;
+    $self->header->{Content_Encoding};
 }
 
 sub location {
-    my $header = shift->header;
-    return $header->set( Location => shift ) if @_;
-    $header->get( 'Location' );
+    my $self = shift;
+    return $self->header->{Location} = shift if @_;
+    $self->header->{Location};
 }
 
 sub redirect {
-    my $header = shift->header;
-    $header->set( Location => shift );
-    $header->status( shift || 301 );
+    my $self = shift;
+    $self->header->{Location} = shift;
+    $self->header->status( shift || 302 );
 }
 
 sub body {
