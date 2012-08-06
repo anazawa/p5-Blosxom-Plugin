@@ -70,7 +70,7 @@ Blosxom::Plugin - Base class for Blosxom plugins
       my $class = shift;
       $class->response->status( 304 );
       my $path_info = $class->request->path_info;
-      my $month = $class->util->num2month( 7 ) # Jul;
+      my $month = $class->util->num2month( 7 ); # Jul
       my $template = $class->data_section->get( 'foo.html' );
   }
 
@@ -94,7 +94,7 @@ Blosxom::Plugin - Base class for Blosxom plugins
 
 =head1 DESCRIPTION
 
-Base class of Blosxom plugins.
+Base class for Blosxom plugins.
 
 =head2 METHODS
 

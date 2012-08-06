@@ -1,6 +1,6 @@
 use strict;
 use Blosxom::Plugin::Request;
-use Test::More tests => 17;
+use Test::More tests => 19;
 
 {
     package blosxom;
@@ -38,8 +38,8 @@ is $request->protocol,     'HTTP/1.0';
 is $request->user,         undef;
 is $request->base,         'http://localhost/blosxom.cgi';
 
-is $request->cookie( 'bar' ), 'qwerty';
-is_deeply [ sort $request->cookie ], [ qw/bar baz foo qux/ ];
+is $request->cookie( 'foo' ), 123;
+is_deeply [ sort $request->cookie ], [qw/bar baz foo qux/];
 
 is $request->param( 'game' ), 'chess';
 is_deeply [ sort $request->param('game') ], [ 'checkers', 'chess' ];

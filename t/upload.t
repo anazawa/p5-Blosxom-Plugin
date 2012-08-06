@@ -1,7 +1,7 @@
 use strict;
 use FindBin;
 use Blosxom::Plugin::Request;
-use Test::More tests => 7;
+use Test::More tests => 8;
 
 # Stolen from CGI.pm
 

@@ -1,8 +1,13 @@
 Revision history for Perl extension Blosxom::Plugin.
 
-  - [Request] Rename server_protocol() to protocol()
-  - [Request] Rename cookies() to cookie()
-  - [Request] Add base()
+  - [Response]
+        * Rename cookies() to cookie()
+  - [Request]
+        * Rename server_protocol() to protocol()
+        * Rename cookies() to cookie()
+        * Add base(), is_secure(), header()
+  - [Request::Upload]
+        * fh() returns an IO::File object
   - [Util] Add encode_html()
 
 0.00005  Jul 14th, 2012

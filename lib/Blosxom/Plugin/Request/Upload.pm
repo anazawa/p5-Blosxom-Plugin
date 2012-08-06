@@ -26,11 +26,15 @@ sub size {
 # Stolen from Plack::Request::Upload
 sub basename {
     my $self = shift;
-    return $self->{basename} if defined $self->{basename};
-    ( my $basename = $self->{filename} ) =~ s{\\}{/}g;
-    $basename = ( File::Spec::Unix->splitpath( $basename ) )[2];
-    $basename =~ s{[^\w\.-]+}{_}g;
-    $self->{basename} = $basename;
+
+    unless ( exists $self->{basename} ) {
+        ( my $basename = $self->{filename} ) =~ s{\\}{/}g;
+        $basename = ( File::Spec::Unix->splitpath($basename) )[2];
+        $basename =~ s{[^\w\.-]+}{_}g;
+        return $self->{basename} = $basename;
+    }
+
+    $self->{basename};
 }
 
 1;
@@ -43,18 +47,8 @@ Blosxom::Plugin::Request::Upload - Handles file upload requests
 
 =head1 SYNOPSIS
 
-  use Blosxom::Plugin::Request::Upload;
-  use CGI;
-
-  my $query = CGI->new;
-  my $filename = $query->param( 'field' );
-
-  my $upload = Blosxom::Plugin::Request::Upload->new(
-      filename => "$filename",
-      fh       => $filename,
-      tempname => $query->tmpFileName( 'field' ),
-      headers  => $query->uploadInfo( 'field' ),
-  );
+  # $request is Blosxom::Plugin::Request
+  my $upload = $request->upload( 'field' );
 
   $upload->size;
   $upload->path;
@@ -72,7 +66,11 @@ Handles file upload requests.
 
 =item $upload->size
 
-Returns the size of uploaded file.
+Returns the size of uploaded file in bytes.
+
+=item $upload->fh
+
+Returns a read-only L<IO::File> handle on the temporary file.
 
 =item $upload->path
 
@@ -94,11 +92,11 @@ Returns basename for C<filename>.
 
 =head1 HISTORY
 
-This momdule was forked from L<Plack::Request::Upload>.
+This module was forked from L<Plack::Request::Upload>.
 
 =head1 SEE ALSO
 
-L<Blosxom::Plugin>, L<Plack::Request::Upload>
+L<Blosxom::Plugin::Request>, L<Plack::Request::Upload>
 
 =head1 AUTHOR
 

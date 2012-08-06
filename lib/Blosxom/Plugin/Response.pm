@@ -21,7 +21,7 @@ sub header { shift->{header} ||= Blosxom::Header->instance }
 sub status       { shift->header->status( @_ )       }
 sub content_type { shift->header->content_type( @_ ) }
 
-sub cookies {
+sub cookie {
     my $self   = shift;
     my $header = $self->header;
 
@@ -131,9 +131,10 @@ A shortcut for C<< $response->header->status >>.
 
 A shortcut for C<< $response->header->type >>.
 
-=item $response->cookies
+=item $response->cookie
 
-A shortcut for C<< $response->header->cookie >>.
+  $response->cookie( ID => 123456 ); # set
+  my $id = $resposne->cookie( 'ID' ); # get
 
 =item $response->content_length
 

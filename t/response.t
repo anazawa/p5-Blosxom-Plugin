@@ -12,7 +12,7 @@ my $plugin = 'Blosxom::Plugin::Response';
 my $response = $plugin->instance;
 isa_ok $response, $plugin;
 can_ok $response, qw(
-    body header status content_type cookies redirect location
+    body header status content_type cookie redirect location
     content_length content_encoding
 );
 
@@ -43,5 +43,5 @@ is $response->content_length, 123;
 $response->content_encoding( 'gzip' );
 is $response->content_encoding, 'gzip';
 
-$response->cookies( ID => 123456 );
-is $response->cookies( 'ID' )->value, 123456;
+$response->cookie( ID => 123456 );
+is $response->cookie( 'ID' )->value, 123456;

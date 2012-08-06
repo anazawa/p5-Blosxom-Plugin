@@ -1,9 +1,7 @@
 package Blosxom::Plugin::Request;
 use strict;
 use warnings;
-use Blosxom::Plugin::Request::Upload;
 use CGI;
-use IO::File;
 
 sub begin {
     my ( $class, $c ) = @_;
@@ -13,41 +11,12 @@ sub begin {
 
 my $instance;
 
-sub instance {
-    my $class = shift;
-
-    return $class if ref $class;
-    return $instance if defined $instance;
-
-    my $query = CGI->new;
-
-    my %upload;
-    for my $field ( $query->param ) {
-        my @uploads;
-        for my $file ( $query->upload($field) ) {
-            push @uploads, Blosxom::Plugin::Request::Upload->new(
-                filename => "$file",
-                fh       => IO::File->new_from_fd( fileno $file, '<' ),
-                tempname => $query->tmpFileName( $file ),
-                headers  => $query->uploadInfo( $file ),
-            );
-        }
-
-        $upload{ $field } = \@uploads if @uploads;
-    }
-
-    my %self = (
-        query  => $query,
-        upload => \%upload,
-    );
-
-    $instance = bless \%self;
-}
+sub instance { $instance ||= bless { query => CGI->new } }
 
 sub has_instance { $instance }
 
 sub path_info {
-    return +{
+    return shift->{path_info} ||= +{
         full   => $blosxom::path_info,
         yr     => $blosxom::path_info_yr,
         mo_num => $blosxom::path_info_mo_num,
@@ -56,8 +25,8 @@ sub path_info {
     };
 }
 
-sub flavour { $blosxom::flavour }
-sub base    { $blosxom::url     }
+sub flavour { shift->{flavour} ||= $blosxom::flavour }
+sub base    { shift->{base}    ||= $blosxom::url     }
 
 sub header    { shift->{query}->http( @_ )   }
 sub is_secure { scalar shift->{query}->https }
@@ -72,20 +41,56 @@ sub protocol     { shift->{query}->server_protocol  }
 sub user         { shift->{query}->remote_user      }
 
 sub cookie {
-    my ( $self, $name ) = @_;
-    $self->{query}->cookie( $name );
+    my $self  = shift;
+    my $query = $self->{query};
+
+    if ( @_ == 1 ) {
+        my $name = shift;
+        return $query->cookie( $name );
+    }
+
+    $query->cookie;
 }
 
 sub param {
     my $self = shift;
-    return $self->{query}->param( shift ) if @_;
-    $self->{query}->param;
+    my $query = $self->{query};
+
+    if ( @_ == 1 ) {
+        my $field = shift;
+        return $query->param( $field );
+    }
+    
+    $query->param;
 }
 
 sub upload {
-    my $self = shift;
+    my $self  = shift;
+    my $query = $self->{query};
 
-    if ( @_ ) {
+    unless ( exists $self->{upload} ) {
+        require Blosxom::Plugin::Request::Upload;
+        require IO::File;
+
+        my %upload;
+        for my $field ( $query->param ) {
+            my @uploads;
+            for my $file ( $query->upload($field) ) {
+                push @uploads, Blosxom::Plugin::Request::Upload->new(
+                    filename => "$file",
+                    fh       => IO::File->new_from_fd( fileno $file, '<' ),
+                    tempname => $query->tmpFileName( $file ),
+                    headers  => $query->uploadInfo( $file ),
+                );
+            }
+
+            $upload{ $field } = \@uploads if @uploads;
+        }
+
+        $self->{upload} = \%upload;
+    }
+
+    if ( @_ == 1 ) {
         my $field = shift;
         if ( my $uploads = $self->{upload}->{$field} ) {
             return wantarray ? @{ $uploads } : $uploads->[0];
@@ -116,7 +121,7 @@ Blosxom::Plugin::Request - Object representing CGI request
   my $path_info_mo_num = $request->path_info->{mo_num}; # '07'
   my $flavour = $request->flavour; # rss
   my $page = $request->param( 'page' ); # 12
-  my $id = $request->cookie( 'ID' ); # 123456
+  my $id = $request->cookie->{ID}; # 123456
 
 =head1 DESCRIPTION
 
@@ -153,8 +158,10 @@ Returns a reference to any existing instance or C<undef> if none is defined.
 
 =item $request->cookie
 
-  my $cookie = $request->cookie( 'name' );
-  my @cookies = $request->cookie;
+Returns a reference to a hash containing the cookies.
+Values are strings that are sent by clients.
+
+  my $id = $request->cookie->{ID}; # 123456
 
 =item $request->param
 
@@ -211,6 +218,16 @@ Returns the protocol (HTTP/1.0 or HTTP/1.1) used for the current request.
   my $upload = $request->upload( 'field' );
   my @uploads = $request->upload( 'field' );
   my @fields = $request->upload;
+
+=item $request->is_secure
+
+Returns a Boolean value telling whether connection is secure.
+
+=item $request->header
+
+Returns the value of the specified header.
+
+  my $requested_language = $request->header( 'Accept-Language' );
 
 =back
 
