@@ -13,7 +13,7 @@ sub load_plugins {
 
     while ( @_ ) {
         my $plugin = shift;
-        my $config = shift if ref $_[0] eq 'HASH';
+        my $config = ref $_[0] eq 'HASH' ? shift : undef;
         $class->load_plugin( $plugin, $config );
     }
 
@@ -23,7 +23,7 @@ sub load_plugins {
 sub load_plugin {
     my $class  = shift;
     my $plugin = join '::', __PACKAGE__, shift;
-    my $config = shift if ref $_[0] eq 'HASH';
+    my $config = ref $_[0] eq 'HASH' ? shift : undef;
 
     if ( Class::Load::try_load_class($plugin) ) {
         if ( $plugin->can('begin') ) {

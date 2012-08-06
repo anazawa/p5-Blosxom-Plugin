@@ -2,6 +2,7 @@ package Blosxom::Plugin::Response;
 use strict;
 use warnings;
 use Blosxom::Header;
+use Carp qw/croak/;
 
 sub begin {
     my ( $class, $c, $conf ) = @_;
@@ -24,11 +25,18 @@ sub cookies {
     my $self   = shift;
     my $header = $self->header;
 
-    if ( @_ == 1 ) {
-        return $header->get_cookie( shift );
-    }
-    elsif ( @_ == 2 ) {
-        $header->set_cookie( @_ );
+    if ( @_ ) {
+        if ( @_ == 1 ) {
+            return $header->get_cookie( shift );
+        }
+        elsif ( @_ % 2 == 0 ) {
+            while ( my ($name, $value) = splice @_, 0, 2 ) {
+                $header->set_cookie( $name => $value );
+            }
+        }
+        else {
+            croak( 'Odd number of elements passed to cookies()' );
+        }
     }
 
     return;

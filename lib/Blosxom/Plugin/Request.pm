@@ -3,6 +3,7 @@ use strict;
 use warnings;
 use Blosxom::Plugin::Request::Upload;
 use CGI;
+use IO::File;
 
 sub begin {
     my ( $class, $c ) = @_;
@@ -18,18 +19,26 @@ sub instance {
     return $class if ref $class;
     return $instance if defined $instance;
 
+    my $query = CGI->new;
+
+    my %upload;
+    for my $field ( $query->param ) {
+        my @uploads;
+        for my $file ( $query->upload($field) ) {
+            push @uploads, Blosxom::Plugin::Request::Upload->new(
+                filename => "$file",
+                fh       => IO::File->new_from_fd( fileno $file, '<' ),
+                tempname => $query->tmpFileName( $file ),
+                headers  => $query->uploadInfo( $file ),
+            );
+        }
+
+        $upload{ $field } = \@uploads if @uploads;
+    }
+
     my %self = (
-        cgi => CGI->new,
-        flavour => $blosxom::flavour,
-        path_info => {
-            full   => $blosxom::path_info,
-            yr     => $blosxom::path_info_yr,
-            mo_num => $blosxom::path_info_mo_num,
-            mo     => $blosxom::path_info_mo,
-            da     => $blosxom::path_info_da,
-        },
-        base => $blosxom::url,
-        upload => {},
+        query  => $query,
+        upload => \%upload,
     );
 
     $instance = bless \%self;
@@ -37,63 +46,56 @@ sub instance {
 
 sub has_instance { $instance }
 
-sub path_info { shift->{path_info} }
-sub flavour   { shift->{flavour}   }
-sub base      { shift->{base}      }
+sub path_info {
+    return +{
+        full   => $blosxom::path_info,
+        yr     => $blosxom::path_info_yr,
+        mo_num => $blosxom::path_info_mo_num,
+        mo     => $blosxom::path_info_mo,
+        da     => $blosxom::path_info_da,
+    };
+}
 
-sub method       { shift->{cgi}->request_method   }
-sub content_type { shift->{cgi}->content_type     }
-sub referer      { shift->{cgi}->referer          }
-sub remote_host  { shift->{cgi}->remote_host      }
-sub address      { shift->{cgi}->remote_addr      }
-sub user_agent   { shift->{cgi}->user_agent( @_ ) }
-sub protocol     { shift->{cgi}->server_protocol  }
-sub user         { shift->{cgi}->remote_user      }
+sub flavour { $blosxom::flavour }
+sub base    { $blosxom::url     }
+
+sub header    { shift->{query}->http( @_ )   }
+sub is_secure { scalar shift->{query}->https }
+
+sub method       { shift->{query}->request_method   }
+sub content_type { shift->{query}->content_type     }
+sub referer      { shift->{query}->referer          }
+sub remote_host  { shift->{query}->remote_host      }
+sub address      { shift->{query}->remote_addr      }
+sub user_agent   { shift->{query}->user_agent( @_ ) }
+sub protocol     { shift->{query}->server_protocol  }
+sub user         { shift->{query}->remote_user      }
 
 sub cookie {
     my ( $self, $name ) = @_;
-    $self->{cgi}->cookie( $name );
+    $self->{query}->cookie( $name );
 }
 
 sub param {
-    my ( $self, $key ) = @_;
-    return $self->{cgi}->param( $key ) if $key;
-    $self->{cgi}->param;
+    my $self = shift;
+    return $self->{query}->param( shift ) if @_;
+    $self->{query}->param;
 }
 
 sub upload {
-    my $self  = shift;
-    my $field = shift;
-    my $upload = $self->{upload};
-    my $cgi   = $self->{cgi};
+    my $self = shift;
 
-    unless ( $field ) {
-        my @fields;
-        for my $name ( $cgi->param ) {
-            next unless ref $cgi->param( $name );
-            next unless defined fileno $cgi->param( $name );
-            push @fields, $name;
+    if ( @_ ) {
+        my $field = shift;
+        if ( my $uploads = $self->{upload}->{$field} ) {
+            return wantarray ? @{ $uploads } : $uploads->[0];
         }
-        return @fields;
+    }
+    else {
+        return keys %{ $self->{upload} };
     }
 
-    if ( my $uploads = $upload->{ $field } ) {
-        return wantarray ? @{ $uploads } : $uploads->[0];
-    } 
-
-    my @uploads;
-    for my $filename ( $cgi->upload( $field ) ) {
-        push @uploads, Blosxom::Plugin::Request::Upload->new(
-            filename => "$filename",
-            fh       => $filename->handle,
-            tempname => $cgi->tmpFileName( $filename ),
-            headers  => $cgi->uploadInfo( $filename ),
-        );
-    }
-
-    $upload->{ $field } = \@uploads;
-
-    wantarray ? @uploads : $uploads[0];
+    return;
 }
 
 1;
