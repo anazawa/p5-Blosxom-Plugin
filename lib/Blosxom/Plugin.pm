@@ -2,7 +2,6 @@ package Blosxom::Plugin;
 use 5.008_009;
 use strict;
 use warnings;
-use Class::Load;
 
 our $VERSION = '0.00006';
 
@@ -25,10 +24,12 @@ sub load_plugin {
     my $plugin = join '::', __PACKAGE__, shift;
     my $config = ref $_[0] eq 'HASH' ? shift : undef;
 
-    if ( Class::Load::try_load_class($plugin) ) {
-        if ( $plugin->can('begin') ) {
-            $plugin->begin( $class, $config );
-        }
+    # load class
+    ( my $file = $plugin ) =~ s{::}{/}g;
+    require "$file.pm";
+
+    if ( $plugin->can('begin') ) {
+        $plugin->begin( $class, $config );
     }
 
     return;

@@ -1,6 +1,7 @@
 package Blosxom::Plugin::Request;
 use strict;
 use warnings;
+use Blosxom::Plugin::Request::Upload;
 use CGI;
 
 sub begin {
@@ -69,18 +70,14 @@ sub upload {
     my $query = $self->{query};
 
     unless ( exists $self->{upload} ) {
-        require Blosxom::Plugin::Request::Upload;
-        require IO::File;
-
         my %upload;
         for my $field ( $query->param ) {
             my @uploads;
             for my $file ( $query->upload($field) ) {
                 push @uploads, Blosxom::Plugin::Request::Upload->new(
-                    filename => "$file",
-                    fh       => IO::File->new_from_fd( fileno $file, '<' ),
-                    tempname => $query->tmpFileName( $file ),
-                    header  => $query->uploadInfo( $file ),
+                    fh     => $file,
+                    path   => $query->tmpFileName( $file ),
+                    header => $query->uploadInfo( $file ),
                 );
             }
 
@@ -121,7 +118,7 @@ Blosxom::Plugin::Request - Object representing CGI request
   my $path_info_mo_num = $request->path_info->{mo_num}; # '07'
   my $flavour = $request->flavour; # rss
   my $page = $request->param( 'page' ); # 12
-  my $id = $request->cookie->{ID}; # 123456
+  my $id = $request->cookie( 'ID' ); # 123456
 
 =head1 DESCRIPTION
 
@@ -161,7 +158,7 @@ Returns a reference to any existing instance or C<undef> if none is defined.
 Returns a reference to a hash containing the cookies.
 Values are strings that are sent by clients.
 
-  my $id = $request->cookie->{ID}; # 123456
+  my $id = $request->cookie( 'ID' ); # 123456
 
 =item $request->param
 
