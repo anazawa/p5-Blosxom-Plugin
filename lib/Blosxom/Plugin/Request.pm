@@ -53,7 +53,7 @@ sub cookie {
 }
 
 sub param {
-    my $self = shift;
+    my $self  = shift;
     my $query = $self->{query};
 
     if ( @_ == 1 ) {
@@ -80,7 +80,7 @@ sub upload {
                     filename => "$file",
                     fh       => IO::File->new_from_fd( fileno $file, '<' ),
                     tempname => $query->tmpFileName( $file ),
-                    headers  => $query->uploadInfo( $file ),
+                    header  => $query->uploadInfo( $file ),
                 );
             }
 

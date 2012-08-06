@@ -6,8 +6,8 @@ use File::Spec::Unix;
 sub new {
     my ( $class, %args ) = @_;
     my $self = bless {}, $class;
-    my @keys = qw( filename fh headers tempname );
-    @{ $self }{ @keys } = @args{ @keys };
+    my @keys = qw( filename fh header tempname );
+    @{ $self }{ @keys } = delete @args{ @keys };
     $self;
 }
 
@@ -15,7 +15,7 @@ sub path     { shift->{tempname} }
 sub filename { shift->{filename} }
 sub fh       { shift->{fh}       }
 
-sub content_type { shift->{headers}->{'Content-Type'} }
+sub content_type { shift->{header}->{'Content-Type'} }
 
 sub size {
     my $self = shift;

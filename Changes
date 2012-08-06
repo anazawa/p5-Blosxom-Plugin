@@ -1,5 +1,6 @@
 Revision history for Perl extension Blosxom::Plugin.
 
+0.00006  Aug 6th, 2012
   - [Response]
         * Rename cookies() to cookie()
   - [Request]

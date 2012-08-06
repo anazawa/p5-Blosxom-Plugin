@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use Class::Load;
 
-our $VERSION = '0.00005';
+our $VERSION = '0.00006';
 
 __PACKAGE__->load_plugins( qw/Util Request Response/ );
 
