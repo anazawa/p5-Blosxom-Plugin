@@ -7,6 +7,31 @@ our $VERSION = '0.00006';
 
 __PACKAGE__->load_plugins( qw/Util Request Response/ );
 
+sub interpolate {
+    my ( $class, $template ) = @_;
+
+    if ( ref $blosxom::interpolate eq 'CODE' ) {
+        return $blosxom::interpolate->( $template );
+    }
+
+    return;
+}
+
+sub get_template {
+    my $class = shift;
+    my %args  = @_ == 1 ? ( component => shift ) : @_;
+
+    $args{component} ||= $class;
+    $args{path}      ||= $class->request->path_info->{full};
+    $args{flavour}   ||= $class->request->flavour;
+
+    if ( ref $blosxom::template eq 'CODE' ) {
+        return $blosxom::template->( @args{qw/path component flavour/} );
+    }
+
+    return;
+}
+
 sub load_plugins {
     my $class = shift;
 

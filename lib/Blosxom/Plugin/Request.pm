@@ -12,22 +12,33 @@ sub begin {
 
 my $instance;
 
-sub instance { $instance ||= bless { query => CGI->new } }
+sub instance {
+    my $class = shift;
+
+    return $class if ref $class;
+    return $instance if defined $instance;
+
+    my %self = (
+        query => CGI->new,
+        path_info => {
+            full   => $blosxom::path_info,
+            yr     => $blosxom::path_info_yr,
+            mo_num => $blosxom::path_info_mo_num,
+            mo     => $blosxom::path_info_mo,
+            da     => $blosxom::path_info_da,
+        },
+        flavour => $blosxom::flavour,
+        base    => $blosxom::url,
+    );
+
+    $instance = bless \%self;
+}
 
 sub has_instance { $instance }
 
-sub path_info {
-    return shift->{path_info} ||= +{
-        full   => $blosxom::path_info,
-        yr     => $blosxom::path_info_yr,
-        mo_num => $blosxom::path_info_mo_num,
-        mo     => $blosxom::path_info_mo,
-        da     => $blosxom::path_info_da,
-    };
-}
-
-sub flavour { shift->{flavour} ||= $blosxom::flavour }
-sub base    { shift->{base}    ||= $blosxom::url     }
+sub path_info { shift->{path_info} }
+sub flavour   { shift->{flavour}   }
+sub base      { shift->{base}      }
 
 sub header    { shift->{query}->http( @_ )   }
 sub is_secure { scalar shift->{query}->https }
