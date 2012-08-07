@@ -22,7 +22,7 @@ sub get_template {
     my %args  = @_ == 1 ? ( component => shift ) : @_;
 
     $args{component} ||= $class;
-    $args{path}      ||= $class->request->path_info->{full};
+    $args{path}      ||= $class->request->path_info;
     $args{flavour}   ||= $class->request->flavour;
 
     if ( ref $blosxom::template eq 'CODE' ) {
@@ -121,6 +121,7 @@ Blosxom::Plugin - Base class for Blosxom plugins
 =head1 DESCRIPTION
 
 Base class for Blosxom plugins.
+Inspired by Blosxom 3 which was abandoned to be released.
 
 =head2 METHODS
 

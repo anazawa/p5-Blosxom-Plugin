@@ -29,7 +29,7 @@ sub filename { "$_[0]->{fh}"  }
 
 sub content_type { shift->{header}->{'content-type'} }
 
-sub _header {
+sub header {
     my ( $self, $field ) = @_;
     $field =~ tr/_A-Z/-a-z/;
     $self->{header}->{$field};

@@ -15,20 +15,19 @@ my $instance;
 sub instance {
     my $class = shift;
 
-    return $class if ref $class;
+    return $class    if ref $class;
     return $instance if defined $instance;
 
     my %self = (
-        query => CGI->new,
-        path_info => {
-            full   => $blosxom::path_info,
-            yr     => $blosxom::path_info_yr,
-            mo_num => $blosxom::path_info_mo_num,
-            mo     => $blosxom::path_info_mo,
-            da     => $blosxom::path_info_da,
+        query     => CGI->new,
+        path_info => $blosxom::path_info,
+        flavour   => $blosxom::flavour,
+        base      => $blosxom::url,
+        date => {
+            day   => $blosxom::path_info_da,
+            month => $blosxom::path_info_mo_num,
+            year  => $blosxom::path_info_yr,
         },
-        flavour => $blosxom::flavour,
-        base    => $blosxom::url,
     );
 
     $instance = bless \%self;
@@ -37,6 +36,7 @@ sub instance {
 sub has_instance { $instance }
 
 sub path_info { shift->{path_info} }
+sub date      { shift->{date}      }
 sub flavour   { shift->{flavour}   }
 sub base      { shift->{base}      }
 
@@ -84,11 +84,11 @@ sub upload {
         my %upload;
         for my $field ( $query->param ) {
             my @uploads;
-            for my $file ( $query->upload($field) ) {
+            for my $fh ( $query->upload($field) ) {
                 push @uploads, Blosxom::Plugin::Request::Upload->new(
-                    fh     => $file,
-                    path   => $query->tmpFileName( $file ),
-                    header => $query->uploadInfo( $file ),
+                    fh     => $fh,
+                    path   => $query->tmpFileName( $fh ),
+                    header => $query->uploadInfo( $fh ),
                 );
             }
 
