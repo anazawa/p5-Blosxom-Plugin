@@ -20,7 +20,7 @@ sub start { 1 }
 
 sub head {
     my $class = shift;
-    my $interpolated = $class->interpolate( 'This is $blog_title' );
+    my $interpolated = $class->render( 'This is $blog_title' );
 }
 
 package main;

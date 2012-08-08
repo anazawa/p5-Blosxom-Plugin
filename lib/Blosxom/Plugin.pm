@@ -7,7 +7,7 @@ our $VERSION = '0.00007';
 
 __PACKAGE__->load_plugins( qw/Util Request Response/ );
 
-sub interpolate {
+sub render {
     my ( $class, $template ) = @_;
 
     if ( ref $blosxom::interpolate eq 'CODE' ) {
@@ -129,7 +129,7 @@ Inspired by Blosxom 3 which was abandoned to be released.
 
 =over 4
 
-=item $interpolated = $class->interpolte( $template )
+=item $interpolated = $class->interpolate( $template )
 
 A shorcut for
 
