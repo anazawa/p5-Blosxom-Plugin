@@ -1,5 +1,8 @@
 Revision history for Perl extension Blosxom::Plugin.
 
+  - Rename interpolate() to render() because 'interpolate'
+    is one of reserved methods 
+
 0.00007  Aug 8th, 2012
   - Add interpolate() and get_template()
   - [Request]

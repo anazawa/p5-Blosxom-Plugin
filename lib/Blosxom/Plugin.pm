@@ -98,7 +98,7 @@ Blosxom::Plugin - Base class for Blosxom plugins
       my $path_info = $class->request->path_info;
       my $month = $class->util->num2month( 7 ); # Jul
       my $template = $class->data_section->get( 'foo.html' );
-      my $interpolated = $class->interpolate( $template );
+      my $rendered = $class->render( $template );
       my $component = $class->get_template( 'component' );
   }
 
@@ -129,11 +129,11 @@ Inspired by Blosxom 3 which was abandoned to be released.
 
 =over 4
 
-=item $interpolated = $class->interpolate( $template )
+=item $rendered = $class->render( $template )
 
 A shorcut for
 
-  $interpolated = $blosxom::interpolate->( $template );
+  $rendered = $blosxom::interpolate->( $template );
 
 =item $template = $class->get_template 
 
