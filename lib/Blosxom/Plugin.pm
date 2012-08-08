@@ -3,7 +3,7 @@ use 5.008_009;
 use strict;
 use warnings;
 
-our $VERSION = '0.00006';
+our $VERSION = '0.00007';
 
 __PACKAGE__->load_plugins( qw/Util Request Response/ );
 
@@ -98,6 +98,8 @@ Blosxom::Plugin - Base class for Blosxom plugins
       my $path_info = $class->request->path_info;
       my $month = $class->util->num2month( 7 ); # Jul
       my $template = $class->data_section->get( 'foo.html' );
+      my $interpolated = $class->interpolate( $template );
+      my $component = $class->get_template( 'component' );
   }
 
   1;
@@ -126,6 +128,38 @@ Inspired by Blosxom 3 which was abandoned to be released.
 =head2 METHODS
 
 =over 4
+
+=item $interpolated = $class->interpolte( $template )
+
+A shorcut for
+
+  $interpolated = $blosxom::interpolate->( $template );
+
+=item $template = $class->get_template 
+
+A shortcut for
+
+  $template = $blosxom::template->(
+      $blosxom::path_info,
+      $class,
+      $blosxom::flavour,
+  );
+
+=item $template = $class->get_template( $component )
+
+A shortcut for
+
+  $template = $blosxom::template->(
+      $blosxom::path_info,
+      $component,
+      $blosxom::flavour,
+  );
+
+=item $template = $class->get_template(path=>$p, component=>$c, flavour=>$f)
+
+A shortcut for
+
+  $template = $blosxom::template->( $p, $c, $f )
 
 =item response, res
 

@@ -126,7 +126,7 @@ Blosxom::Plugin::Request - Object representing CGI request
   my $request = Blosxom::Plugin::Request->instance;
 
   my $method = $request->method; # GET
-  my $path_info_mo_num = $request->path_info->{mo_num}; # '07'
+  my $path_info = $request->path_info; # /foo/bar.html
   my $flavour = $request->flavour; # rss
   my $page = $request->param( 'page' ); # 12
   my $id = $request->cookie( 'ID' ); # 123456
@@ -160,14 +160,23 @@ Returns a reference to any existing instance or C<undef> if none is defined.
 
 =item $request->base
 
+  $blosxom::url
+
 =item $request->path_info
+
+  $blosxom::path_info
+
+=item $request->date
+
+  $request->date->{year};  # $blosxom::path_info_yr
+  $request->date->{month}; # $blosxom::path_info_mo_num
+  $request->date->{day};   # $blosxom::path_info_da
 
 =item $request->flavour
 
-=item $request->cookie
+  $blosxom::flavour
 
-Returns a reference to a hash containing the cookies.
-Values are strings that are sent by clients.
+=item $request->cookie
 
   my $id = $request->cookie( 'ID' ); # 123456
 
@@ -203,7 +212,7 @@ Returns the C<HTTP_USER_AGENT> variable. If you give this method a single
 argument, it will attempt to pattern match on it, allowing you to do
 something like:
 
-  if ( $request->user_agent( 'Mozilla' ) ) {
+  if ( $request->user_agent('Mozilla') ) {
       ...
   }
 
@@ -222,6 +231,8 @@ if this script is protected (C<REMOTE_USER>).
 Returns the protocol (HTTP/1.0 or HTTP/1.1) used for the current request.
 
 =item $request->upload
+
+Returns L<Blosxom::Plugin::Request::Upload> objects.
 
   my $upload = $request->upload( 'field' );
   my @uploads = $request->upload( 'field' );

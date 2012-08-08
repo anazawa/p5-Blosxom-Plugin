@@ -105,11 +105,9 @@ Returns the original filename in the client.
 
 Returns basename for C<filename>.
 
+=item $upload->header
+
 =back
-
-=head1 HISTORY
-
-This module was forked from L<Plack::Request::Upload>.
 
 =head1 SEE ALSO
 
