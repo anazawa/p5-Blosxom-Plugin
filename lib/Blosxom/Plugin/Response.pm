@@ -3,6 +3,7 @@ use strict;
 use warnings;
 use Blosxom::Header;
 use Carp qw/croak/;
+use CGI qw/cgi_error/;
 
 sub begin {
     my ( $class, $c, $conf ) = @_;
@@ -16,7 +17,18 @@ sub instance { $instance ||= bless {} }
 
 sub has_instance { $instance }
 
-sub header { shift->{header} ||= Blosxom::Header->instance }
+sub header {
+    my $self = shift;
+
+    unless ( exists $self->{header} ) {
+        $self->{header} = Blosxom::Header->instance;
+        if ( my $status = cgi_error() ) {
+            $self->{header}->{Status} = $status;
+        }
+    }
+
+    $self->{header};
+}
 
 sub status       { shift->header->status( @_ )       }
 sub content_type { shift->header->content_type( @_ ) }
