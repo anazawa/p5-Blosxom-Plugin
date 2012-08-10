@@ -53,27 +53,15 @@ sub protocol     { shift->{query}->server_protocol  }
 sub user         { shift->{query}->remote_user      }
 
 sub cookie {
-    my $self  = shift;
-    my $query = $self->{query};
-
-    if ( @_ == 1 ) {
-        my $name = shift;
-        return $query->cookie( $name );
-    }
-
-    $query->cookie;
+    my $self = shift;
+    return $self->{query}->cookie( shift ) if @_;
+    $self->{query}->cookie;
 }
 
 sub param {
-    my $self  = shift;
-    my $query = $self->{query};
-
-    if ( @_ == 1 ) {
-        my $field = shift;
-        return $query->param( $field );
-    }
-    
-    $query->param;
+    my $self = shift;
+    return $self->{query}->param( shift ) if @_;
+    $self->{query}->param;
 }
 
 sub upload {
@@ -98,7 +86,7 @@ sub upload {
         $self->{upload} = \%upload;
     }
 
-    if ( @_ == 1 ) {
+    if ( @_ ) {
         my $field = shift;
         if ( my $uploads = $self->{upload}->{$field} ) {
             return wantarray ? @{ $uploads } : $uploads->[0];

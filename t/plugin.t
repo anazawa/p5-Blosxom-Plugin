@@ -1,6 +1,9 @@
 use strict;
 use Test::More tests => 21;
 
+package blosxom;
+our $header = {};
+
 package plugin;
 use base qw/Blosxom::Plugin/;
 

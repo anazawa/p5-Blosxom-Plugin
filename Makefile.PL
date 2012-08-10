@@ -12,4 +12,6 @@ test_requires 'Test::More' => '0.98';
 test_requires 'Test::Pod';
 test_requires 'Data::Section::Simple';
 
+no_index package => 'Fh';
+
 WriteAll;
