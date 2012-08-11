@@ -1,8 +1,6 @@
 package Blosxom::Plugin::Request;
 use strict;
 use warnings;
-use Blosxom::Plugin::Request::Upload;
-use CGI;
 
 sub begin {
     my ( $class, $c ) = @_;
@@ -17,6 +15,8 @@ sub instance {
 
     return $class    if ref $class;
     return $instance if defined $instance;
+
+    require CGI;
 
     my %self = (
         query     => CGI->new,
@@ -69,15 +69,19 @@ sub upload {
     my $query = $self->{query};
 
     unless ( exists $self->{upload} ) {
+        require Blosxom::Plugin::Request::Upload;
+
         my %upload;
         for my $field ( $query->param ) {
             my @uploads;
             for my $fh ( $query->upload($field) ) {
-                push @uploads, Blosxom::Plugin::Request::Upload->new(
+                my $upload = Blosxom::Plugin::Request::Upload->new(
                     fh     => $fh,
                     path   => $query->tmpFileName( $fh ),
                     header => $query->uploadInfo( $fh ),
                 );
+
+                push @uploads, $upload;
             }
 
             $upload{ $field } = \@uploads if @uploads;
