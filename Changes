@@ -1,5 +1,6 @@
 Revision history for Perl extension Blosxom::Plugin.
 
+0.00008  Aug 13th, 2012
   - Add file() to Fh (See CGI.pm)
   - Rename interpolate() to render() because 'interpolate'
     is one of reserved methods 

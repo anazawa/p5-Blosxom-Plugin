@@ -3,7 +3,7 @@ use 5.008_009;
 use strict;
 use warnings;
 
-our $VERSION = '0.00007';
+our $VERSION = '0.00008';
 
 __PACKAGE__->load_plugins( qw/Util Request Response/ );
 
@@ -124,6 +124,14 @@ Blosxom::Plugin - Base class for Blosxom plugins
 
 Base class for Blosxom plugins.
 Inspired by Blosxom 3 which was abandoned to be released.
+
+=head2 BACKGROUND
+
+Blosxom globalizes a lot of variables.
+This module assigns them to appropriate namespaces
+like 'Request', 'Response' or 'Config'.
+In addition, it's intended that Blosxom::Plugin::* namespace will abstract
+routines from Blosxom plugins.
 
 =head2 METHODS
 
