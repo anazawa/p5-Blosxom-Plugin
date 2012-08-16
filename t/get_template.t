@@ -11,6 +11,8 @@ our $template  = sub { join '|', @_ };
 package get_template;
 use base 'Blosxom::Plugin';
 
+__PACKAGE__->load_plugin( 'Default' );
+
 sub start { 1 }
 
 sub default {

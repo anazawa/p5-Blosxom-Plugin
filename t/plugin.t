@@ -7,6 +7,8 @@ our $header = {};
 package plugin;
 use base qw/Blosxom::Plugin/;
 
+__PACKAGE__->load_plugin(qw/Default/);
+
 package main;
 
 my $class = 'plugin';

@@ -5,33 +5,6 @@ use warnings;
 
 our $VERSION = '0.00008';
 
-__PACKAGE__->load_plugins( qw/Util Request Response/ );
-
-sub render {
-    my ( $class, $template ) = @_;
-
-    if ( ref $blosxom::interpolate eq 'CODE' ) {
-        return $blosxom::interpolate->( $template );
-    }
-
-    return;
-}
-
-sub get_template {
-    my $class = shift;
-    my %args  = @_ == 1 ? ( component => shift ) : @_;
-
-    $args{component} ||= $class;
-    $args{path}      ||= $class->request->path_info;
-    $args{flavour}   ||= $class->request->flavour;
-
-    if ( ref $blosxom::template eq 'CODE' ) {
-        return $blosxom::template->( @args{qw/path component flavour/} );
-    }
-
-    return;
-}
-
 sub load_plugins {
     my $class = shift;
 
@@ -55,6 +28,18 @@ sub load_plugin {
 
     if ( $plugin->can('begin') ) {
         $plugin->begin( $class, $config );
+    }
+
+    return;
+}
+
+sub add_methods {
+    my $class = shift;
+
+    if ( @_ > 1 and @_ % 2 == 0 ) {
+        while ( my ($method, $code) = splice @_, 0, 2 ) {
+            $class->add_method( $method => $code );
+        }
     }
 
     return;

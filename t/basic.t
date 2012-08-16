@@ -11,7 +11,7 @@ our $static_entries = 0;
 package foo;
 use base 'Blosxom::Plugin';
 
-__PACKAGE__->load_plugin( 'Foo' );
+__PACKAGE__->load_plugins(qw/Default Foo/);
 
 sub start { !$blosxom::static_entries }
 
@@ -27,6 +27,7 @@ package baz;
 use base qw/Blosxom::Plugin/;
 
 __PACKAGE__->load_plugins(
+    'Default',
     'Foo',
     'Bar' => {
         foo => 'qux',

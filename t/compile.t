@@ -4,7 +4,7 @@ use Test::More tests => 8;
 BEGIN {
     use_ok 'Blosxom::Plugin';
     use_ok 'Blosxom::Plugin::Response';
-    use_ok 'Blosxom::Plugin::Response';
+    use_ok 'Blosxom::Plugin::Request';
     use_ok 'Blosxom::Plugin::Util';
 }
 

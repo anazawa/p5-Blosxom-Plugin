@@ -16,6 +16,8 @@ our $interpolate = sub {
 package render;
 use base 'Blosxom::Plugin';
 
+__PACKAGE__->load_plugin( 'Default' );
+
 sub start { 1 }
 
 sub head {
