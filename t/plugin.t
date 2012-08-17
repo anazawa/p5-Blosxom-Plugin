@@ -5,9 +5,7 @@ package blosxom;
 our $header = {};
 
 package plugin;
-use base qw/Blosxom::Plugin/;
-
-__PACKAGE__->load_component(qw/Core/);
+use base qw/Blosxom::Plugin::Core/;
 
 package main;
 

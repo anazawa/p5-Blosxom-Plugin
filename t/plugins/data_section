@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use parent 'Blosxom::Plugin';
 
-__PACKAGE__->load_component( 'DataSection' );
+__PACKAGE__->load_components( 'DataSection' );
 
 sub start { 1 }
 

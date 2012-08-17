@@ -6,24 +6,27 @@ use warnings;
 our $VERSION = '0.00008';
 
 sub load_components {
-    my $class = shift;
+    my $context_class = shift;
+    my $base_class    = __PACKAGE__;
 
     while ( @_ ) {
-        my $component = shift;
-        my $config = @_ > 0 && ref $_[0] eq 'HASH' ? shift : undef;
-        $class->load_component( $component, $config );
-    }
+        my $component = do {
+            my $class = shift;
 
-    return;
-}
+            # If a mofule name begins with a + character,
+            # considers it a fully qualified class name.
+            unless ( $class =~ s/^\+// || $class =~ /^$base_class/ ) {
+                $class = "$base_class\::$class";
+            }
 
-sub load_component {
-    my $class     = shift;
-    my $component = _load_class( shift );
-    my $config    = ref $_[0] eq 'HASH' ? shift : undef;
+            # load class
+            ( my $file = $class ) =~ s{::}{/}g;
+            require "$file.pm";
 
-    if ( $component->can('begin') ) {
-        $component->begin( $class, $config );
+            $class;
+        };
+
+        $component->begin( $context_class );
     }
 
     return;
@@ -40,21 +43,6 @@ sub add_method {
     }
 
     return;
-}
-
-# stolen from Plack::Util
-sub _load_class {
-    my $class  = shift;
-    my $prefix = __PACKAGE__;
-
-    unless ( $class =~ s/^\+// || $class =~ /^$prefix/ ) {
-        $class = "$prefix\::$class";
-    }
-
-    ( my $file = $class ) =~ s{::}{/}g;
-    require "$file.pm";
-
-    $class;
 }
 
 1;

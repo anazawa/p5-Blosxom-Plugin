@@ -1,16 +1,11 @@
 package Blosxom::Plugin::Core;
 use strict;
 use warnings;
+use parent 'Blosxom::Plugin';
 
-sub begin {
-    my ( $class, $c, $conf ) = @_;
-    $c->load_components( qw/Util Request Response DataSection/ );
-    $c->add_method( render => \&_render );
-    $c->add_method( get_template => \&_get_template );
-    return;
-}
+__PACKAGE__->load_components(qw/Util Request Response DataSection/);
 
-sub _get_template {
+sub get_template {
     my $class = shift;
     my %args  = @_ == 1 ? ( component => shift ) : @_;
 
@@ -25,7 +20,7 @@ sub _get_template {
     return;
 }
 
-sub _render {
+sub render {
     my ( $class, $basename ) = @_;
 
     if ( ref $blosxom::interpolate eq 'CODE' ) {

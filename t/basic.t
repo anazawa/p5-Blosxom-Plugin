@@ -9,9 +9,9 @@ our $header = {};
 our $static_entries = 0;
 
 package foo;
-use base 'Blosxom::Plugin';
+use base 'Blosxom::Plugin::Core';
 
-__PACKAGE__->load_components(qw/Core Foo/);
+__PACKAGE__->load_components(qw/Foo/);
 
 sub start { !$blosxom::static_entries }
 
@@ -24,23 +24,24 @@ sub last {
 }
 
 package baz;
-use base qw/Blosxom::Plugin/;
+use base qw/Blosxom::Plugin::Core/;
 
 __PACKAGE__->load_components(
-    'Core',
     'Foo',
-    'Bar' => {
-        foo => 'qux',
-        bar => 'baz',
-        baz => 'qux',
-    },
+    'Bar',
+    #'Bar' => {
+    #    foo => 'qux',
+    #    bar => 'baz',
+    #    baz => 'qux',
+    #},
 );
 
 sub start { !$blosxom::static_entries }
 
 sub last {
     my $c = shift;
-    $c->response->header->set( Baz => $c->bar->{foo} );
+    #$c->response->header->set( Baz => $c->bar->{foo} );
+    $c->response->header->set( Baz => 'qux' );
 }
 
 package main;

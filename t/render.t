@@ -28,9 +28,7 @@ our $template = sub {
 };
 
 package render;
-use base 'Blosxom::Plugin';
-
-__PACKAGE__->load_component( 'Core' );
+use base 'Blosxom::Plugin::Core';
 
 sub start { 1 }
 
