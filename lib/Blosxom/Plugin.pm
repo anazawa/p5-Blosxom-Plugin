@@ -5,41 +5,25 @@ use warnings;
 
 our $VERSION = '0.00008';
 
-sub load_plugins {
+sub load_components {
     my $class = shift;
 
     while ( @_ ) {
-        my $plugin = shift;
-        my $config = ref $_[0] eq 'HASH' ? shift : undef;
-        $class->load_plugin( $plugin, $config );
+        my $component = shift;
+        my $config = @_ > 0 && ref $_[0] eq 'HASH' ? shift : undef;
+        $class->load_component( $component, $config );
     }
 
     return;
 }
 
-sub load_plugin {
-    my $class  = shift;
-    my $plugin = join '::', __PACKAGE__, shift;
-    my $config = ref $_[0] eq 'HASH' ? shift : undef;
+sub load_component {
+    my $class     = shift;
+    my $component = _load_class( shift );
+    my $config    = ref $_[0] eq 'HASH' ? shift : undef;
 
-    # load class
-    ( my $file = $plugin ) =~ s{::}{/}g;
-    require "$file.pm";
-
-    if ( $plugin->can('begin') ) {
-        $plugin->begin( $class, $config );
-    }
-
-    return;
-}
-
-sub add_methods {
-    my $class = shift;
-
-    if ( @_ > 1 and @_ % 2 == 0 ) {
-        while ( my ($method, $code) = splice @_, 0, 2 ) {
-            $class->add_method( $method => $code );
-        }
+    if ( $component->can('begin') ) {
+        $component->begin( $class, $config );
     }
 
     return;
@@ -56,6 +40,21 @@ sub add_method {
     }
 
     return;
+}
+
+# stolen from Plack::Util
+sub _load_class {
+    my $class  = shift;
+    my $prefix = __PACKAGE__;
+
+    unless ( $class =~ s/^\+// || $class =~ /^$prefix/ ) {
+        $class = "$prefix\::$class";
+    }
+
+    ( my $file = $class ) =~ s{::}{/}g;
+    require "$file.pm";
+
+    $class;
 }
 
 1;

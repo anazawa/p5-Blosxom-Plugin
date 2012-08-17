@@ -13,16 +13,30 @@ our $interpolate = sub {
     $template;
 };
 
+our $flavour = 'html';
+our $path_info = '';
+
+our %template = (
+    html => {
+        render => 'This is $blog_title',
+    },
+);
+
+our $template = sub {
+    my ( $path, $component, $flavour ) = @_;
+    $template{$flavour}{$component};
+};
+
 package render;
 use base 'Blosxom::Plugin';
 
-__PACKAGE__->load_plugin( 'Default' );
+__PACKAGE__->load_component( 'Core' );
 
 sub start { 1 }
 
 sub head {
     my $class = shift;
-    my $rendered = $class->render( 'This is $blog_title' );
+    my $rendered = $class->render( 'render.html' );
 }
 
 package main;

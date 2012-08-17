@@ -1,0 +1,20 @@
+package render;
+use strict;
+use warnings;
+use parent 'Blosxom::Plugin';
+
+__PACKAGE__->load_plugin( 'Default' );
+
+sub start { 1 }
+
+sub head {
+    my $class = shift;
+    my $rendered = $class->render( 'render.html' );
+}
+
+1;
+
+__DATA__
+
+@@ render.html
+This is $blog_title

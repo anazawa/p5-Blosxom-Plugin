@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use base qw/Blosxom::Plugin/;
 
-__PACKAGE__->load_plugin( 'DataSection' );
+__PACKAGE__->load_component( 'DataSection' );
 
 sub start { !$blosxom::static_entries }
 
