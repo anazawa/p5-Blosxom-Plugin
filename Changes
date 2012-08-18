@@ -1,5 +1,6 @@
 Revision history for Perl extension Blosxom::Plugin.
 
+0.00009  Aug 18th, 2012
   - Remove load_plugin(). Rename load_plugins() to load_components()
   - Add Blosxom::Plugin::Core and Blosxom::Plugin::DataSection
   - render() receives basename, not raw template

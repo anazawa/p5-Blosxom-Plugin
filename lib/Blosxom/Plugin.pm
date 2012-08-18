@@ -3,7 +3,7 @@ use 5.008_009;
 use strict;
 use warnings;
 
-our $VERSION = '0.00008';
+our $VERSION = '0.00009';
 
 sub load_components {
     my $context_class = shift;
