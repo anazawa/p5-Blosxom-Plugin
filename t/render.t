@@ -32,13 +32,8 @@ use base 'Blosxom::Plugin::Core';
 
 sub start { 1 }
 
-sub head {
-    my $class = shift;
-    my $rendered = $class->render( 'render.html' );
-}
-
 package main;
 
 my $plugin = 'render';
 ok $plugin->start;
-is $plugin->head, 'This is My Weblog';
+is $plugin->render( 'render.html' ), 'This is My Weblog';

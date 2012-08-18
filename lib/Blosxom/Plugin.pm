@@ -15,7 +15,7 @@ sub load_components {
 
             # If a mofule name begins with a + character,
             # considers it a fully qualified class name.
-            unless ( $class =~ s/^\+// || $class =~ /^$base_class/ ) {
+            unless ( $class =~ s/^\+// or $class =~ /^$base_class/ ) {
                 $class = "$base_class\::$class";
             }
 
@@ -60,18 +60,13 @@ Blosxom::Plugin - Base class for Blosxom plugins
   use warnings;
   use parent 'Blosxom::Plugin';
 
-  __PACKAGE__->load_plugin( 'DataSection' );
+  __PACKAGE__->load_components( 'DataSection' );
 
   sub start { !$blosxom::static_entries }
 
   sub last {
       my $class = shift;
-      $class->response->status( 304 );
-      my $path_info = $class->request->path_info;
-      my $month = $class->util->num2month( 7 ); # Jul
-      my $template = $class->data_section->get( 'foo.html' );
-      my $rendered = $class->render( $template );
-      my $component = $class->get_template( 'component' );
+      my $template = $class->data_section->{'foo.html'};
   }
 
   1;
@@ -109,53 +104,13 @@ routines from Blosxom plugins.
 
 =over 4
 
-=item $rendered = $class->render( $template )
 
-A shorcut for
+=item load_components( @comps )
 
-  $rendered = $blosxom::interpolate->( $template );
-
-=item $template = $class->get_template 
-
-A shortcut for
-
-  $template = $blosxom::template->(
-      $blosxom::path_info,
-      $class,
-      $blosxom::flavour,
-  );
-
-=item $template = $class->get_template( $component )
-
-A shortcut for
-
-  $template = $blosxom::template->(
-      $blosxom::path_info,
-      $component,
-      $blosxom::flavour,
-  );
-
-=item $template = $class->get_template(path=>$p, component=>$c, flavour=>$f)
-
-A shortcut for
-
-  $template = $blosxom::template->( $p, $c, $f )
-
-=item response, res
-
-Returns a L<Blosxom::Plugin::Response> object.
-
-=item request, req
-
-Returns a L<Blosxom::Plugin::Request> object.
-
-=item util
-
-Returns a L<Blosxom::Plugin::Util> object.
-
-=item load_plugin( $plugin )
-
-=item load_plugins( @plugins )
+Loads the given components into the current module.
+If a module begins with a C<+> character,
+it is taken to be a fully qualified class name,
+otherwise C<Blosxom::Plugin> is prepended to it.
 
 =item add_method( $method => $coderef )
 
@@ -167,6 +122,7 @@ L<Blosxom 2.0.0|http://blosxom.sourceforge.net/> or higher.
 
 =head1 SEE ALSO
 
+L<Blosxom::Plugin::Core>,
 L<Amon2>
 
 =head1 ACKNOWLEDGEMENT

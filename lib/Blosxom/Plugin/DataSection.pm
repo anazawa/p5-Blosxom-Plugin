@@ -21,3 +21,33 @@ sub begin {
 }
 
 1;
+
+__END__
+
+=head1 NAME
+
+Blosxom::Plugin::DataSection - Read data from __DATA__
+
+=head1 SYNOPSIS
+
+  my $template = $class->data_section->{'foo.html'};
+
+=head1 DESCRIPTION
+
+This module extracts data from L<__DATA__> section of the plugin
+and merges them into Blosxom default templates.
+
+=head1 SEE ALSO
+
+L<Blosxom::Plugin>
+
+=head1 AUTHOR
+
+Ryo Anazawa <anazawa@cpan.org>
+
+=head1 LICENSE
+
+This module is free software; you can redistribute it and/or
+modify it under the same terms as Perl itself. See L<perlartistic>.
+
+=cut

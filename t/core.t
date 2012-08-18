@@ -11,7 +11,10 @@ package main;
 
 my $class = 'plugin';
 
-can_ok $class, qw( response res request req util );
+can_ok $class, qw(
+    load_components add_method
+    response res request req util data_section
+);
 
 my $util = $class->util;
 isa_ok $util, 'Blosxom::Plugin::Util';
