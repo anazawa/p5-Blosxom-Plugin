@@ -25,40 +25,45 @@ sub load_components {
 
             $class;
         };
+    
+        my $config = ref $_[0] eq 'HASH' ? shift : undef;
 
-        $component->begin( ref $_[0] eq 'HASH' ? ($class, shift) : $class );
+        $component->begin( $class, $config );
     }
 
     return;
 }
 
-my $get_glob = sub {
-    my $slot = join '::', @_[0, 1];
-    no strict 'refs';
-    \*{ $slot };
-};
-
-sub has_method { defined *{ $get_glob->(@_) }{CODE} }
-
-# See Data::Util
+# See Data::Util, Package::Stash
 sub add_method {
-    my $class  = shift;
-    my $method = shift;
-    my $code   = shift;
-    my $slot   = $get_glob->( $class, $method );
+    my ( $package, $name, $code ) = @_;
 
-    if ( ref $code eq 'CODE' ) {
-        if ( defined *{$slot}{CODE} ) {
-            warnings::warnif( redefine => "Subroutine $method redefined" );
-            no warnings 'redefine';
-            *{ $slot } = $code;
-        }
-        else {
-            *{ $slot } = $code;
-        }
+    unless ( ref $code eq 'CODE' ) {
+        require Carp;
+        Carp::croak( "Must provide a code reference" );
+    }
+
+    my $slot = do {
+        no strict 'refs';
+        \*{ "$package\::$name" };
+    };
+
+    if ( defined *{$slot}{CODE} ) {
+        warnings::warnif( redefine => "Subroutine $name redefined" );
+        no warnings 'redefine';
+        *{ $slot } = $code;
+    }
+    else {
+        *{ $slot } = $code;
     }
 
     return;
+}
+
+sub has_method {
+    my ( $package, $name ) = @_;
+    my $namespace = do { no strict 'refs'; \%{"$package\::"} };
+    exists $namespace->{$name} && defined *{ $namespace->{$name} }{CODE};
 }
 
 1;
@@ -78,9 +83,7 @@ Blosxom::Plugin - Base class for Blosxom plugins
 
   __PACKAGE__->load_components( 'DataSection' );
 
-  sub start { !$blosxom::static_entries }
-
-  sub last {
+  sub start {
       my $class = shift;
       my $template = $class->data_section->{'foo.html'};
   }
@@ -102,7 +105,6 @@ Blosxom::Plugin - Base class for Blosxom plugins
   </body>
   </html>
 
-
 =head1 DESCRIPTION
 
 Base class for Blosxom plugins.
@@ -120,15 +122,32 @@ routines from Blosxom plugins.
 
 =over 4
 
-
-=item load_components( @comps )
+=item $class->load_components( @comps )
 
 Loads the given components into the current module.
 If a module begins with a C<+> character,
 it is taken to be a fully qualified class name,
 otherwise C<Blosxom::Plugin> is prepended to it.
 
-=item add_method( $method => $coderef )
+=item $class->add_method( $method => $coderef )
+
+This method takes a method name and a subroutine reference,
+and adds the method to the class.
+
+  my_plugin->add_method( foo => \&_foo );
+
+The above is equivalent to:
+
+  no strict 'refs';
+  *{ "my_plugin" . '::' . "foo" } = \&_foo;
+
+To re-install a method, use C<no warnings 'redefine'> directive.
+
+=item $class->has_method( $method )
+
+Returns a boolean indicating whether or not the class defines
+the named method. It does not include methods inherited from
+parent classes.
 
 =back
 

@@ -12,3 +12,6 @@ package main;
 my $plugin = 'my_plugin';
 ok $plugin->has_method( 'foo' );
 ok !$plugin->has_method( 'bar' );
+
+ok exists $my_plugin::{foo};
+ok !exists $my_plugin::{bar};
