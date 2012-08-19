@@ -12,11 +12,16 @@ package MyComponent; {
         my ( $class, $c ) = @_;
 
         if ( grep !$c->can($_), @requires ) {
-            die "Can't apply $class to $c - missing ";
+            die "Can't apply $class to $c";
         }
 
-        $c->add_method( bar => sub { 'MyComponent bar' } );
-        $c->add_method( baz => sub { 'MyComponent baz' } );
+        unless ( $c->has_method('bar') ) {
+            $c->add_method( bar => sub { 'MyComponent bar' } );
+        }
+
+        unless ( $c->has_method('baz') ) {
+            $c->add_method( baz => sub { 'MyComponent baz' } );
+        }
 
         return;
     }

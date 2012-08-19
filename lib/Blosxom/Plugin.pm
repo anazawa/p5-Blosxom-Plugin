@@ -6,8 +6,8 @@ use warnings;
 our $VERSION = '0.00009';
 
 sub load_components {
-    my $context_class = shift;
-    my $base_class    = __PACKAGE__;
+    my $class  = shift;
+    my $prefix = __PACKAGE__;
 
     while ( @_ ) {
         my $component = do {
@@ -15,8 +15,8 @@ sub load_components {
 
             # If a mofule name begins with a + character,
             # considers it a fully qualified class name.
-            unless ( $class =~ s/^\+// or $class =~ /^$base_class/ ) {
-                $class = "$base_class\::$class";
+            unless ( $class =~ s/^\+// or $class =~ /^$prefix/ ) {
+                $class = "$prefix\::$class";
             }
 
             # load class
@@ -26,20 +26,36 @@ sub load_components {
             $class;
         };
 
-        $component->begin( $context_class );
+        $component->begin( ref $_[0] eq 'HASH' ? ($class, shift) : $class );
     }
 
     return;
 }
 
-sub add_method {
-    my ( $into, $as, $code ) = @_;
+my $get_glob = sub {
+    my $slot = join '::', @_[0, 1];
+    no strict 'refs';
+    \*{ $slot };
+};
 
-    # If a method is already defined on a class,
-    # that method will not be composed in from the component
+sub has_method { defined *{ $get_glob->(@_) }{CODE} }
+
+# See Data::Util
+sub add_method {
+    my $class  = shift;
+    my $method = shift;
+    my $code   = shift;
+    my $slot   = $get_glob->( $class, $method );
+
     if ( ref $code eq 'CODE' ) {
-        my $slot = do { no strict 'refs'; \*{"$into\::$as"} };
-        *$slot = $code unless *$slot{CODE};
+        if ( defined *{$slot}{CODE} ) {
+            warnings::warnif( redefine => "Subroutine $method redefined" );
+            no warnings 'redefine';
+            *{ $slot } = $code;
+        }
+        else {
+            *{ $slot } = $code;
+        }
     }
 
     return;

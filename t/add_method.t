@@ -1,28 +1,25 @@
 use strict;
 use warnings;
 use Test::More tests => 3;
-
-$INC{'MyComponent.pm'}++;
-
-package MyComponent;
-
-sub begin {
-    my ( $class, $c ) = @_;
-    $c->add_method( bar => sub { 'MyComponent bar' } );
-    $c->add_method( baz => sub { 'MyComponent baz' } );
-}
+use Test::Warn;
 
 package my_plugin;
 use parent 'Blosxom::Plugin';
 
-__PACKAGE__->load_components( '+MyComponent' );
-
 sub foo { 'my_plugin foo' }
-sub baz { 'my_plugin baz' }
 
 package main;
 
 my $plugin = 'my_plugin';
-is $plugin->foo, 'my_plugin foo';
-is $plugin->bar, 'MyComponent bar';
-is $plugin->baz, 'my_plugin baz';
+
+my $expected = 'Subroutine foo redefined';
+my $code = sub { 'foo redefined' };
+warning_is { $plugin->add_method( foo => $code ) } $expected;
+is $plugin->foo, 'foo redefined';
+
+{
+    no warnings 'redefine';
+    $plugin->add_method( foo => sub { 'foo no warnings' } );
+}
+
+is $plugin->foo, 'foo no warnings';
