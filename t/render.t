@@ -13,9 +13,6 @@ our $interpolate = sub {
     $template;
 };
 
-our $flavour = 'html';
-our $path_info = '';
-
 our %template = (
     html => {
         render => 'This is $blog_title',

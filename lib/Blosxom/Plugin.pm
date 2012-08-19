@@ -33,13 +33,13 @@ sub load_components {
 }
 
 sub add_method {
-    my $class  = shift;
-    my $method = join '::', $class, shift;
-    my $code   = shift;
+    my ( $into, $as, $code ) = @_;
 
+    # If a method is already defined on a class,
+    # that method will not be composed in from the component
     if ( ref $code eq 'CODE' ) {
-        no strict 'refs';
-        *$method = $code;
+        my $slot = do { no strict 'refs'; \*{"$into\::$as"} };
+        *$slot = $code unless *$slot{CODE};
     }
 
     return;

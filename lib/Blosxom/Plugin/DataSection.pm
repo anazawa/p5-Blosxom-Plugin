@@ -34,7 +34,7 @@ Blosxom::Plugin::DataSection - Read data from __DATA__
 
 =head1 DESCRIPTION
 
-This module extracts data from L<__DATA__> section of the plugin
+This module extracts data from C<__DATA__> section of the plugin
 and merges them into Blosxom default templates.
 
 =head1 SEE ALSO
