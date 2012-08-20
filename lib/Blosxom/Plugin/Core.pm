@@ -5,6 +5,20 @@ use parent 'Blosxom::Plugin';
 
 __PACKAGE__->load_components(qw/Util Request Response DataSection/);
 
+my @EXPORT = qw(
+    util request req response res
+    data_section get_template render
+);
+
+sub begin {
+    my ( $class, $c ) = @_;
+    unless ( $c eq caller ) {
+        for my $method ( @EXPORT ) {
+            $c->add_method( $method => \&{$method} );
+        }
+    }
+}
+
 sub res { shift->response }
 sub req { shift->request  }
 

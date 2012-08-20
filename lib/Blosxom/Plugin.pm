@@ -2,6 +2,7 @@ package Blosxom::Plugin;
 use 5.008_009;
 use strict;
 use warnings;
+use Carp qw/croak/;
 
 our $VERSION = '0.00009';
 
@@ -34,23 +35,16 @@ sub load_components {
     return;
 }
 
-# See Data::Util, Package::Stash
 sub add_method {
     my ( $package, $name, $code ) = @_;
 
-    unless ( ref $code eq 'CODE' ) {
-        require Carp;
-        Carp::croak( "Must provide a code reference" );
-    }
+    croak 'Must provide a code reference' unless ref $code eq 'CODE';
 
-    my $slot = do {
-        no strict 'refs';
-        \*{ "$package\::$name" };
-    };
+    my $slot = "$package\::$name";
+    no strict 'refs';
 
-    if ( defined *{$slot}{CODE} ) {
-        warnings::warnif( redefine => "Subroutine $name redefined" );
-        no warnings 'redefine';
+    if ( defined *{$slot}{CODE} && !warnings::enabled('redefine') ) {
+        undef &{ $slot };
         *{ $slot } = $code;
     }
     else {
@@ -62,8 +56,8 @@ sub add_method {
 
 sub has_method {
     my ( $package, $name ) = @_;
-    my $namespace = do { no strict 'refs'; \%{"$package\::"} };
-    exists $namespace->{$name} && defined *{ $namespace->{$name} }{CODE};
+    my $stash = do { no strict 'refs'; \%{"$package\::"} };
+    exists $stash->{$name} && defined *{ $stash->{$name} }{CODE};
 }
 
 1;

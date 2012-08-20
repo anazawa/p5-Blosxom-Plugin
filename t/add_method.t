@@ -12,7 +12,7 @@ package main;
 
 my $plugin = 'my_plugin';
 
-my $expected = 'Subroutine foo redefined';
+my $expected = 'Subroutine my_plugin::foo redefined';
 my $code = sub { 'foo redefined' };
 warning_is { $plugin->add_method( foo => $code ) } $expected;
 is $plugin->foo, 'foo redefined';
