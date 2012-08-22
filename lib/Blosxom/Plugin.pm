@@ -6,14 +6,6 @@ use Carp qw/carp croak/;
 
 our $VERSION = '0.00009';
 
-sub import {
-    my $class = shift;
-    my $inheritor = caller;
-    no strict 'refs';
-    push @{"$inheritor\::ISA"}, $class;
-    $inheritor->load_components( @_ );
-}
-
 sub load_components {
     my $class  = shift;
     my $prefix = __PACKAGE__;
@@ -44,45 +36,48 @@ sub load_components {
 }
 
 my %method_of;
+our $AUTOLOAD;
 
 sub AUTOLOAD {
     my $class = shift;
-    my $method = our $AUTOLOAD;
-    $method =~ s/.*:://;
-    if ( my $code = $method_of{$class}{$method} ) {
-        return $class->$code( @_ );
-    }
-    croak( qq{Can't locate object method "$method" via package "$class"} );
+    my $method = $method_of{$AUTOLOAD};
+    return $class->$method( @_ ) if $method;
+    ( my $name = $AUTOLOAD ) =~ s/.*:://;
+    croak qq{Can't locate object method "$name" via package "$class"};
 }
 
 sub add_method {
     my ( $class, $method, $code ) = @_;
 
-    unless ( ref $code eq 'CODE' ) {
-        croak( "Must provide a code reference" );
+    croak "Must provide a code reference" unless ref $code eq 'CODE';
+
+    my $entry = "$class\::$method";
+    return if defined &{$entry};
+
+    if ( $method_of{$entry} && warnings::enabled('redefine') ) {
+        carp "Subroutine $entry redefined";
     }
 
-    return if defined &{"$class\::$method"};
-
-    if ( $method_of{$class}{$method} ) {
-        if ( warnings::enabled('redefine') ) {
-            carp( "Subroutine $class\::$method redefined" );
-        }
-    }
-
-    $method_of{$class}{$method} = $code;
+    $method_of{$entry} = $code;
 
     return;
 }
 
 sub has_method {
     my ( $class, $method ) = @_;
-    defined &{"$class\::$method"} || $method_of{$class}{$method};
+    my $slot = "$class\::$method";
+    defined &{$slot} || exists $method_of{$slot};
 }
 
 sub can {
     my ( $class, $method ) = @_;
-    $class->SUPER::can($method) || $method_of{$class}{$method};
+    $class->SUPER::can($method) || $method_of{"$class\::$method"};
+}
+
+sub dump {
+    require Data::Dumper;
+    local $Data::Dumper::Terse = 1;
+    Data::Dumper::Dumper( \%method_of );
 }
 
 1;

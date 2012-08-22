@@ -5,19 +5,10 @@ package blosxom;
 our $header = {};
 
 package plugin;
-use Blosxom::Plugin qw/Core/;
-
-package as_component;
 use parent 'Blosxom::Plugin';
 __PACKAGE__->load_components('Core');
 
 package main;
-
-can_ok 'as_component', qw(
-    load_components add_method
-    response res request req util data_section
-    get_template render
-);
 
 my $class = 'plugin';
 
