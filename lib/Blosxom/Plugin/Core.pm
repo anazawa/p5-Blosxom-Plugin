@@ -1,22 +1,13 @@
 package Blosxom::Plugin::Core;
 use strict;
 use warnings;
-use parent 'Blosxom::Plugin';
 
-__PACKAGE__->load_components(qw/Util Request Response DataSection/);
-
-my @EXPORT = qw(
-    util request req response res
-    data_section get_template render
-);
+my @EXPORTS = qw(req res get_template render);
 
 sub begin {
     my ( $class, $c ) = @_;
-    unless ( $c eq caller ) {
-        for my $method ( @EXPORT ) {
-            $c->add_method( $method => \&{$method} );
-        }
-    }
+    $c->load_components(qw/Util Request Response DataSection/);
+    $c->add_method( $_ => \&{$_} ) for @EXPORTS;
 }
 
 sub res { shift->response }

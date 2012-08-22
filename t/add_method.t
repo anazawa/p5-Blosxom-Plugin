@@ -6,11 +6,13 @@ use Test::Warn;
 package my_plugin;
 use parent 'Blosxom::Plugin';
 
-sub foo { 'my_plugin foo' }
+#sub foo { 'my_plugin foo' }
 
 package main;
 
 my $plugin = 'my_plugin';
+
+$plugin->add_method( foo => sub { 'initial value' } );
 
 my $expected = 'Subroutine my_plugin::foo redefined';
 my $code = sub { 'foo redefined' };

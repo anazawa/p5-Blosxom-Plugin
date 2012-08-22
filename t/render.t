@@ -25,7 +25,8 @@ our $template = sub {
 };
 
 package render;
-use base 'Blosxom::Plugin::Core';
+#use base 'Blosxom::Plugin::Core';
+use Blosxom::Plugin qw/Core/;
 
 sub start { 1 }
 

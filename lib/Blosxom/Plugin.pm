@@ -2,9 +2,17 @@ package Blosxom::Plugin;
 use 5.008_009;
 use strict;
 use warnings;
-use Carp qw/croak/;
+use Carp qw/carp croak/;
 
 our $VERSION = '0.00009';
+
+sub import {
+    my $class = shift;
+    my $inheritor = caller;
+    no strict 'refs';
+    push @{"$inheritor\::ISA"}, $class;
+    $inheritor->load_components( @_ );
+}
 
 sub load_components {
     my $class  = shift;
@@ -35,29 +43,46 @@ sub load_components {
     return;
 }
 
+my %method_of;
+
+sub AUTOLOAD {
+    my $class = shift;
+    my $method = our $AUTOLOAD;
+    $method =~ s/.*:://;
+    if ( my $code = $method_of{$class}{$method} ) {
+        return $class->$code( @_ );
+    }
+    croak( qq{Can't locate object method "$method" via package "$class"} );
+}
+
 sub add_method {
-    my ( $package, $name, $code ) = @_;
+    my ( $class, $method, $code ) = @_;
 
-    croak 'Must provide a code reference' unless ref $code eq 'CODE';
-
-    my $slot = "$package\::$name";
-    no strict 'refs';
-
-    if ( defined *{$slot}{CODE} && !warnings::enabled('redefine') ) {
-        undef &{ $slot };
-        *{ $slot } = $code;
+    unless ( ref $code eq 'CODE' ) {
+        croak( "Must provide a code reference" );
     }
-    else {
-        *{ $slot } = $code;
+
+    return if defined &{"$class\::$method"};
+
+    if ( $method_of{$class}{$method} ) {
+        if ( warnings::enabled('redefine') ) {
+            carp( "Subroutine $class\::$method redefined" );
+        }
     }
+
+    $method_of{$class}{$method} = $code;
 
     return;
 }
 
 sub has_method {
-    my ( $package, $name ) = @_;
-    my $stash = do { no strict 'refs'; \%{"$package\::"} };
-    exists $stash->{$name} && defined *{ $stash->{$name} }{CODE};
+    my ( $class, $method ) = @_;
+    defined &{"$class\::$method"} || $method_of{$class}{$method};
+}
+
+sub can {
+    my ( $class, $method ) = @_;
+    $class->SUPER::can($method) || $method_of{$class}{$method};
 }
 
 1;

@@ -5,7 +5,7 @@ package blosxom;
 our $header = {};
 
 package plugin;
-use parent qw/Blosxom::Plugin::Core/;
+use Blosxom::Plugin qw/Core/;
 
 package as_component;
 use parent 'Blosxom::Plugin';
