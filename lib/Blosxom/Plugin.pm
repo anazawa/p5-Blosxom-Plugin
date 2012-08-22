@@ -2,9 +2,12 @@ package Blosxom::Plugin;
 use 5.008_009;
 use strict;
 use warnings;
-use Carp qw/carp croak/;
+use Carp qw/croak/;
 
 our $VERSION = '0.00009';
+our $AUTOLOAD;
+
+my %method_of;
 
 sub load_components {
     my $class  = shift;
@@ -35,9 +38,6 @@ sub load_components {
     return;
 }
 
-my %method_of;
-our $AUTOLOAD;
-
 sub AUTOLOAD {
     my $class = shift;
     my $method = $method_of{$AUTOLOAD};
@@ -46,32 +46,19 @@ sub AUTOLOAD {
     croak qq{Can't locate object method "$name" via package "$class"};
 }
 
-sub add_method {
-    my ( $class, $method, $code ) = @_;
-
-    croak "Must provide a code reference" unless ref $code eq 'CODE';
-
-    my $entry = "$class\::$method";
-    return if defined &{$entry};
-
-    if ( $method_of{$entry} && warnings::enabled('redefine') ) {
-        carp "Subroutine $entry redefined";
-    }
-
-    $method_of{$entry} = $code;
-
-    return;
-}
-
-sub has_method {
-    my ( $class, $method ) = @_;
-    my $slot = "$class\::$method";
-    defined &{$slot} || exists $method_of{$slot};
-}
-
 sub can {
     my ( $class, $method ) = @_;
     $class->SUPER::can($method) || $method_of{"$class\::$method"};
+}
+
+sub add_method {
+    my ( $class, $method, $code ) = @_;
+    croak 'Not a CODE reference' unless ref $code eq 'CODE';
+    return if $class->SUPER::can($method);
+    my $slot = "$class\::$method";
+    croak qq{Method name conflict for "$method"} if exists $method_of{$slot};
+    $method_of{$slot} = $code;
+    return;
 }
 
 sub dump {

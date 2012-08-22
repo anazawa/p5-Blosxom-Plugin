@@ -1,27 +1,25 @@
 use strict;
 use warnings;
-use Test::More tests => 3;
-use Test::Warn;
+use Test::More tests => 4;
+use Test::Exception;
 
 package my_plugin;
 use parent 'Blosxom::Plugin';
 
-#sub foo { 'my_plugin foo' }
+sub foo { 'my_plugin foo' }
 
 package main;
 
 my $plugin = 'my_plugin';
 
-$plugin->add_method( foo => sub { 'initial value' } );
+$plugin->add_method( bar => sub { 'bar method' } );
+ok $plugin->can('bar'), 'add method';
 
-my $expected = 'Subroutine my_plugin::foo redefined';
-my $code = sub { 'foo redefined' };
-warning_is { $plugin->add_method( foo => $code ) } $expected;
-is $plugin->foo, 'foo redefined';
+$plugin->add_method( foo => sub { 'foo redefined' } );
+is $plugin->foo, 'my_plugin foo', 'cannot override methods';
 
-{
-    no warnings 'redefine';
-    $plugin->add_method( foo => sub { 'foo no warnings' } );
-}
+my $expected = qr/^Not a CODE reference/;
+throws_ok { $plugin->add_method( 'bar' ) } $expected;
 
-is $plugin->foo, 'foo no warnings';
+$expected = qr/^Method name conflict for "bar"/;
+throws_ok { $plugin->add_method( bar => sub {} ) } $expected;

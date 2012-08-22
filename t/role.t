@@ -9,13 +9,17 @@ package MyComponent;
 sub begin {
     my ( $class, $c ) = @_;
 
-    unless ( $c->has_method('bar') ) {
+    #unless ( $c->has_method('bar') ) {
+    unless ( $c->can('bar') ) {
         $c->add_method( bar => sub { 'MyComponent bar' } );
     }
 
-    unless ( $c->has_method('baz') ) {
+    #unless ( $c->has_method('baz') ) {
+    unless ( $c->can('baz') ) {
         $c->add_method( baz => sub { 'MyComponent baz' } );
     }
+
+    return;
 }
 
 package my_plugin;
