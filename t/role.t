@@ -6,7 +6,7 @@ $INC{'MyComponent.pm'}++;
 
 package MyComponent;
 
-sub begin {
+sub init {
     my ( $class, $c ) = @_;
 
     #unless ( $c->has_method('bar') ) {

@@ -3,10 +3,10 @@ use strict;
 use warnings;
 use Data::Section::Simple;
 
-sub begin {
+sub init {
     my $class  = shift;
     my $c      = shift;
-    my $reader = Data::Section::Simple->new( $c );
+    my $reader = Data::Section::Simple->new( ref $c );
     my $data   = $reader->get_data_section;
 
     while ( my ($basename, $template) = each %{ $data } ) {

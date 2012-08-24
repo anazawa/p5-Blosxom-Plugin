@@ -4,7 +4,7 @@ use warnings;
 
 my @EXPORTS = qw(req res get_template render);
 
-sub begin {
+sub init {
     my ( $class, $c ) = @_;
     $c->load_components(qw/Util Request Response DataSection/);
     $c->add_method( $_ => \&{$_} ) for @EXPORTS;

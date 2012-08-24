@@ -8,7 +8,7 @@ package MyComponent; {
 
     my @requires = qw( req1 req2 );
 
-    sub begin {
+    sub init {
         my ( $class, $c ) = @_;
 
         if ( grep !$c->can($_), @requires ) {

@@ -3,68 +3,78 @@ use 5.008_009;
 use strict;
 use warnings;
 use Carp qw/croak/;
+use Scalar::Util qw/blessed/;
 
 our $VERSION = '0.00009';
-our $AUTOLOAD;
 
-my %method_of;
+my %instance_of;
+
+sub instance {
+    my $class = blessed $_[0] || $_[0];
+    $instance_of{ $class } ||= bless {}, $class;
+}
+
+sub has_instance { $instance_of{ blessed $_[0] || $_[0] } }
 
 sub load_components {
-    my $class  = shift;
+    my $self   = shift->instance;
     my $prefix = __PACKAGE__;
 
     while ( @_ ) {
         my $component = do {
             my $class = shift;
 
-            # If a mofule name begins with a + character,
-            # considers it a fully qualified class name.
             unless ( $class =~ s/^\+// or $class =~ /^$prefix/ ) {
                 $class = "$prefix\::$class";
             }
 
-            # load class
             ( my $file = $class ) =~ s{::}{/}g;
             require "$file.pm";
 
             $class;
         };
-    
+
         my $config = ref $_[0] eq 'HASH' ? shift : undef;
 
-        $component->begin( $class, $config );
+        $component->init( $self, $config );
     }
 
     return;
 }
 
-sub AUTOLOAD {
-    my $class = shift;
-    my $method = $method_of{$AUTOLOAD};
-    return $class->$method( @_ ) if $method;
-    ( my $name = $AUTOLOAD ) =~ s/.*:://;
-    croak qq{Can't locate object method "$name" via package "$class"};
+sub add_method {
+    my ( $self, $method, $code ) = @_;
+    croak qq{Method name conflict for "$method"} if exists $self->{$method};
+    croak 'Must provide a CODE reference' unless ref $code eq 'CODE';
+    $self->{ $method } = $code;
+    return;
 }
 
 sub can {
-    my ( $class, $method ) = @_;
-    $class->SUPER::can($method) || $method_of{"$class\::$method"};
+    my ( $invocant, $method ) = @_;
+    $invocant->SUPER::can( $method ) || $invocant->instance->{ $method };
 }
 
-sub add_method {
-    my ( $class, $method, $code ) = @_;
-    croak 'Not a CODE reference' unless ref $code eq 'CODE';
-    return if $class->SUPER::can($method);
-    my $slot = "$class\::$method";
-    croak qq{Method name conflict for "$method"} if exists $method_of{$slot};
-    $method_of{$slot} = $code;
+sub AUTOLOAD {
+    my $invocant = shift;
+    ( my $slot = our $AUTOLOAD ) =~ s/.*:://;
+    my $method = $invocant->instance->{ $slot };
+    return $invocant->$method( @_ ) if ref $method eq 'CODE';
+    my $class = blessed $invocant || $invocant;
+    croak qq{Can't locate object method "$slot" via package "$class"};
+}
+
+sub DESTROY {
+    my $self = shift;
+    delete $instance_of{ blessed $self };
     return;
 }
 
 sub dump {
     require Data::Dumper;
+    my $self = shift;
     local $Data::Dumper::Terse = 1;
-    Data::Dumper::Dumper( \%method_of );
+    Data::Dumper::Dumper( $self );
 }
 
 1;
@@ -135,20 +145,15 @@ otherwise C<Blosxom::Plugin> is prepended to it.
 This method takes a method name and a subroutine reference,
 and adds the method to the class.
 
-  my_plugin->add_method( foo => \&_foo );
+  package my_plugin;
+  use parent 'Blosxom::Plugin';
+  __PACKAGE__->add_method( foo => sub { 'my_plugin foo' } );
+  warn __PACKAGE__->foo; # my_plugin foo
 
-The above is equivalent to:
-
-  no strict 'refs';
-  *{ "my_plugin" . '::' . "foo" } = \&_foo;
-
-To re-install a method, use C<no warnings 'redefine'> directive.
-
-=item $class->has_method( $method )
-
-Returns a boolean indicating whether or not the class defines
-the named method. It does not include methods inherited from
-parent classes.
+If a method is already defined on a class, that method will not be
+added.
+If any of added methods clash, an exception is raised unless the class
+provides a method.
 
 =back
 

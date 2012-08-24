@@ -9,7 +9,11 @@ $INC{ "My/Component/$_.pm" }++ for 1..3;
 my @got;
 
 package My::Component;
-sub begin { push @got, [ @_ ] }
+
+sub init {
+    my ( $class, $c, $config ) = @_;
+    push @got, [ $class, ref $c, $config ];
+}
 
 package My::Component::1;
 use parent -norequire, 'My::Component';

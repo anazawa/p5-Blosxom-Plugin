@@ -2,7 +2,7 @@ package Blosxom::Plugin::Request;
 use strict;
 use warnings;
 
-sub begin {
+sub init {
     my ( $class, $c ) = @_;
     $c->add_method( request => sub { $class->instance } );
 }
