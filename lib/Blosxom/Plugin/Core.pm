@@ -1,14 +1,16 @@
 package Blosxom::Plugin::Core;
 use strict;
 use warnings;
+use parent 'Blosxom::Plugin';
 
-my @EXPORTS = qw(req res get_template render);
+__PACKAGE__->load_components(
+    'Util',
+    'DataSection',
+    'Request',
+    'Response',
+);
 
-sub init {
-    my ( $class, $c ) = @_;
-    $c->load_components(qw/Util Request Response DataSection/);
-    $c->add_method( $_ => \&{$_} ) for @EXPORTS;
-}
+__PACKAGE__->activate;
 
 sub res { shift->response }
 sub req { shift->request  }

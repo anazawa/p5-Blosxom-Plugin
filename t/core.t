@@ -5,8 +5,9 @@ package blosxom;
 our $header = {};
 
 package plugin;
-use parent 'Blosxom::Plugin';
-__PACKAGE__->load_components('Core');
+#use parent 'Blosxom::Plugin';
+#__PACKAGE__->load_components('Core');
+use parent 'Blosxom::Plugin::Core';
 
 package main;
 

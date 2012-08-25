@@ -12,14 +12,18 @@ package main;
 
 my $plugin = 'my_plugin';
 
-$plugin->instance->add_method( bar => sub { 'add bar()' } );
+#$plugin->instance->add_method( bar => sub { 'add bar()' } );
+$plugin->add_method( bar => sub { 'add bar()' } );
 is $plugin->bar, 'add bar()', 'add method';
 
-$plugin->instance->add_method( foo => sub {} );
+#$plugin->instance->add_method( foo => sub {} );
+$plugin->add_method( foo => sub {} );
 is $plugin->foo, 'my_plugin foo', 'cannot override methods';
 
 my $expected = qr/^Must provide a CODE reference/;
-throws_ok { $plugin->instance->add_method( baz => [] ) } $expected;
+#throws_ok { $plugin->instance->add_method( baz => [] ) } $expected;
+throws_ok { $plugin->add_method( baz => [] ) } $expected;
 
-$expected = qr/^Method name conflict for "bar"/;
-throws_ok { $plugin->instance->add_method( bar => sub {} ) } $expected;
+#$expected = qr/^Method name conflict for "bar"/;
+#throws_ok { $plugin->instance->add_method( bar => sub {} ) } $expected;
+#throws_ok { $plugin->add_method( bar => sub {} ) } $expected;

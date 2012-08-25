@@ -3,21 +3,19 @@ use 5.008_009;
 use strict;
 use warnings;
 use Carp qw/croak/;
-use Scalar::Util qw/blessed/;
 
 our $VERSION = '0.00009';
 
-my %instance_of;
+my %method_of;
 
-sub instance {
-    my $class = blessed $_[0] || $_[0];
-    $instance_of{ $class } ||= bless {}, $class;
-}
-
-sub has_instance { $instance_of{ blessed $_[0] || $_[0] } }
+my $add_method = sub {
+    my ( $class, $method, $code ) = @_;
+    no strict 'refs';
+    *{ "$class\::$method" } = $code;
+};
 
 sub load_components {
-    my $self   = shift->instance;
+    my $class  = shift;
     my $prefix = __PACKAGE__;
 
     while ( @_ ) {
@@ -36,45 +34,52 @@ sub load_components {
 
         my $config = ref $_[0] eq 'HASH' ? shift : undef;
 
-        $component->init( $self, $config );
+        $component->init( $class, $config );
     }
 
     return;
 }
 
 sub add_method {
-    my ( $self, $method, $code ) = @_;
-    croak qq{Method name conflict for "$method"} if exists $self->{$method};
+    my ( $class, $method, $code ) = @_;
+    return if $class->has_method( $method );
     croak 'Must provide a CODE reference' unless ref $code eq 'CODE';
-    $self->{ $method } = $code;
+    $method_of{ $class }{ $method } = $code;
     return;
+}
+
+sub has_method {
+    my ( $class, $method ) = @_;
+    defined &{"$class\::$method"} && exists $method_of{$class}{$method};
 }
 
 sub can {
-    my ( $invocant, $method ) = @_;
-    $invocant->SUPER::can( $method ) || $invocant->instance->{ $method };
+    my ( $class, $method ) = @_;
+    $class->SUPER::can( $method ) || $method_of{ $class }{ $method };
 }
 
 sub AUTOLOAD {
-    my $invocant = shift;
-    ( my $slot = our $AUTOLOAD ) =~ s/.*:://;
-    my $method = $invocant->instance->{ $slot };
-    return $invocant->$method( @_ ) if ref $method eq 'CODE';
-    my $class = blessed $invocant || $invocant;
-    croak qq{Can't locate object method "$slot" via package "$class"};
+    my ( $class ) = @_;
+    ( my $method = our $AUTOLOAD ) =~ s/.*:://;
+    my $code = delete $method_of{$class}{$method};
+    $class->$add_method( $method => $code ) if ref $code eq 'CODE';
+    goto &{ $AUTOLOAD } if defined &{ $AUTOLOAD };
+    croak qq{Can't locate object method "$method" via package "$class"};
 }
 
-sub DESTROY {
-    my $self = shift;
-    delete $instance_of{ blessed $self };
-    return;
+sub activate {
+    my $class = shift;
+    if ( my $method_of = delete $method_of{ $class } ) {
+        while ( my ($method, $code) = each %{$method_of} ) {
+            $class->$add_method( $method => $code );
+        }
+    }
 }
 
 sub dump {
     require Data::Dumper;
-    my $self = shift;
     local $Data::Dumper::Terse = 1;
-    Data::Dumper::Dumper( $self );
+    Data::Dumper::Dumper( \%method_of );
 }
 
 1;
