@@ -2,21 +2,20 @@ package Blosxom::Plugin;
 use 5.008_009;
 use strict;
 use warnings;
-use Carp qw/croak/;
 
 our $VERSION = '0.00009';
-
-my %method_of;
-
-my $add_method = sub {
-    my ( $class, $method, $code ) = @_;
-    no strict 'refs';
-    *{ "$class\::$method" } = $code;
-};
 
 sub load_components {
     my $class  = shift;
     my $prefix = __PACKAGE__;
+
+    my %method_of;
+
+    local *add_method = sub {
+        my ( $class, $method, $code ) = @_;
+        $method_of{ $method } = $code;
+        return;
+    };
 
     while ( @_ ) {
         my $component = do {
@@ -37,49 +36,17 @@ sub load_components {
         $component->init( $class, $config );
     }
 
-    return;
-}
-
-sub add_method {
-    my ( $class, $method, $code ) = @_;
-    return if $class->has_method( $method );
-    croak 'Must provide a CODE reference' unless ref $code eq 'CODE';
-    $method_of{ $class }{ $method } = $code;
-    return;
-}
-
-sub has_method {
-    my ( $class, $method ) = @_;
-    defined &{"$class\::$method"} && exists $method_of{$class}{$method};
-}
-
-sub can {
-    my ( $class, $method ) = @_;
-    $class->SUPER::can( $method ) || $method_of{ $class }{ $method };
-}
-
-sub AUTOLOAD {
-    my ( $class ) = @_;
-    ( my $method = our $AUTOLOAD ) =~ s/.*:://;
-    my $code = delete $method_of{$class}{$method};
-    $class->$add_method( $method => $code ) if ref $code eq 'CODE';
-    goto &{ $AUTOLOAD } if defined &{ $AUTOLOAD };
-    croak qq{Can't locate object method "$method" via package "$class"};
-}
-
-sub activate {
-    my $class = shift;
-    if ( my $method_of = delete $method_of{ $class } ) {
-        while ( my ($method, $code) = each %{$method_of} ) {
-            $class->$add_method( $method => $code );
+    while ( my ($method, $code) = each %method_of ) {
+        my $slot = "$class\::$method";
+        if ( ref $code eq 'CODE' ) {
+            unless ( defined &{ $slot } ) {
+                no strict 'refs';
+                *{ $slot } = $code;
+            }
         }
     }
-}
 
-sub dump {
-    require Data::Dumper;
-    local $Data::Dumper::Terse = 1;
-    Data::Dumper::Dumper( \%method_of );
+    return;
 }
 
 1;

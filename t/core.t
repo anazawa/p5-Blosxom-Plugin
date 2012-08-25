@@ -14,7 +14,7 @@ package main;
 my $class = 'plugin';
 
 can_ok $class, qw(
-    load_components add_method
+    load_components
     response res request req util data_section
     get_template render
 );
