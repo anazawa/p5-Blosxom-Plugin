@@ -1,6 +1,7 @@
 use strict;
 use warnings;
-use Test::More tests => 4;
+#use Test::More tests => 4;
+use Test::More skip_all => 'deprecated';
 
 package blosxom;
 

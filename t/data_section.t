@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 use FindBin;
-use Test::More tests => 4;
+use Test::More tests => 3;
 
 {
     package blosxom;
