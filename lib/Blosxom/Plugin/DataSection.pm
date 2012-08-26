@@ -1,24 +1,41 @@
 package Blosxom::Plugin::DataSection;
 use strict;
 use warnings;
-use Data::Section::Simple;
+use parent 'Data::Section::Simple';
 
 sub init {
-    my $class  = shift;
-    my $c      = shift;
-    #my $reader = Data::Section::Simple->new( ref $c );
-    my $reader = Data::Section::Simple->new( $c );
-    my $data   = $reader->get_data_section;
+    my ( $class, $c ) = @_;
+    $c->add_method( data_section => \&_data_section );
+}
 
-    while ( my ($basename, $template) = each %{ $data } ) {
+my %instance_of;
+
+sub _data_section {
+    my $class = shift;
+    $instance_of{ $class } ||= __PACKAGE__->new( $class );
+}
+
+sub new {
+    my $self = shift->SUPER::new( @_ );
+    $self->{template} = $self->SUPER::get_data_section || +{};
+    $self;
+}
+
+sub get_data_section {
+    my ( $self, $name ) = @_;
+    $name ? $self->{template}->{$name} : $self->{template};
+}
+
+sub get { shift->get_data_section(@_) }
+
+sub merge {
+    my ( $self, @basenames ) = @_;
+    for my $basename ( @basenames || keys %{ $self->{template} } ) {
         if ( my ($component, $flavour) = $basename =~ /(.*)\.([^.]*)/ ) {
-            $blosxom::template{$flavour}{$component} = $template;
+            my $template = $self->{template}->{$basename};
+            $blosxom::template{ $flavour }{ $component } = $template;
         }
     }
-
-    $c->add_method( data_section => sub { $data } );
-
-    return;
 }
 
 1;

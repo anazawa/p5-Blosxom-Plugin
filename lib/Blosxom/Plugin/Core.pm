@@ -10,8 +10,6 @@ __PACKAGE__->load_components(
     'Response',
 );
 
-#__PACKAGE__->activate;
-
 sub res { shift->response }
 sub req { shift->request  }
 

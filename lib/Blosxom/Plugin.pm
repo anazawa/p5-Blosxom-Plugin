@@ -39,7 +39,7 @@ sub load_components {
     while ( my ($method, $code) = each %method_of ) {
         my $slot = "$class\::$method";
         if ( ref $code eq 'CODE' ) {
-            unless ( defined &{ $slot } ) {
+            unless ( defined &{$slot} ) {
                 no strict 'refs';
                 *{ $slot } = $code;
             }
@@ -59,7 +59,7 @@ Blosxom::Plugin - Base class for Blosxom plugins
 
 =head1 SYNOPSIS
 
-  package foo;
+  package my_plugin;
   use strict;
   use warnings;
   use parent 'Blosxom::Plugin';
@@ -75,16 +75,16 @@ Blosxom::Plugin - Base class for Blosxom plugins
 
   __DATA__
 
-  @@ foo.html
+  @@ my_plugin.html
 
   <!DOCTYPE html>
   <html>
   <head>
     <meta charset="utf-8">
-    <title>Foo</title>
+    <title>My Plugin</title>
   </head>
   <body>
-  <h1>hello, world</h1>
+  <h1>Hello, world</h1>
   </body>
   </html>
 
@@ -119,13 +119,18 @@ and adds the method to the class.
 
   package my_plugin;
   use parent 'Blosxom::Plugin';
-  __PACKAGE__->add_method( foo => sub { 'my_plugin foo' } );
-  warn __PACKAGE__->foo; # my_plugin foo
+  my_plugin->load_components( '+MyComponent' );
+  warn my_plugin->my_component; # 'MyComponent my_component'
 
-If a method is already defined on a class, that method will not be
-added.
-If any of added methods clash, an exception is raised unless the class
-provides a method.
+  package MyComponent;
+
+  sub init {
+      my ( $class, $c, $config ) = @_;
+      $c->add_method( my_component => \&_my_component );
+      return;
+  }
+
+  sub _my_component { 'MyComponent my_component' }
 
 =back
 
