@@ -1,43 +1,30 @@
 package Blosxom::Plugin::Request;
 use strict;
 use warnings;
+use CGI;
+use Carp qw/carp/;
 
 sub init {
     my ( $class, $c ) = @_;
-    $c->add_method( request => sub { $class->instance } );
+    $c->add_method( request => \&_request );
 }
+
+sub _request { __PACKAGE__->instance }
 
 my $instance;
 
 sub instance {
     my $class = shift;
-
-    return $class    if ref $class;
-    return $instance if defined $instance;
-
-    require CGI;
-
-    my %self = (
-        query     => CGI->new,
-        path_info => $blosxom::path_info,
-        flavour   => $blosxom::flavour,
-        base      => $blosxom::url,
-        date => {
-            day   => $blosxom::path_info_da,
-            month => $blosxom::path_info_mo_num,
-            year  => $blosxom::path_info_yr,
-        },
-    );
-
-    $instance = bless \%self;
+    $instance ||= bless { query => CGI->new }, $class;
 }
 
 sub has_instance { $instance }
 
-sub path_info { shift->{path_info} }
-sub date      { shift->{date}      }
-sub flavour   { shift->{flavour}   }
-sub base      { shift->{base}      }
+sub path_info { carp 'Not implemented yet' }
+sub base      { carp 'Not implemented yet' }
+
+sub date    { carp 'Obsolete' }
+sub flavour { carp 'Obsolete' }
 
 sub header    { shift->{query}->http( @_ )   }
 sub is_secure { scalar shift->{query}->https }
@@ -64,11 +51,11 @@ sub param {
 }
 
 sub upload {
-    my $self  = shift;
-    my $query = $self->{query};
+    my ( $self, $field ) = @_;
 
-    unless ( exists $self->{upload} ) {
+    $self->{upload} ||= do { 
         require Blosxom::Plugin::Request::Upload;
+        my $query = $self->{query};
 
         my %upload;
         for my $field ( $query->param ) {
@@ -86,12 +73,11 @@ sub upload {
             $upload{ $field } = \@uploads if @uploads;
         }
 
-        $self->{upload} = \%upload;
-    }
+        \%upload;
+    };
 
-    if ( @_ ) {
-        my $field = shift;
-        if ( my $uploads = $self->{upload}->{$field} ) {
+    if ( $field ) {
+        if ( my $uploads = $self->{upload}{$field} ) {
             return wantarray ? @{ $uploads } : $uploads->[0];
         }
     }
