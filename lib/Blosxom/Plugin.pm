@@ -3,7 +3,7 @@ use 5.008_009;
 use strict;
 use warnings;
 
-our $VERSION = '0.00009';
+our $VERSION = '0.00010';
 
 sub load_components {
     my $class  = shift;
