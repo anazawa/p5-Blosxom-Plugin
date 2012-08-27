@@ -15,7 +15,3 @@ ok $plugin->start;
 
 my $expected = "hello, world\n";
 is $plugin->data_section->{'data_section.html'}, $expected;
-
-#$plugin->merge_data_section;
-#is $blosxom::template{html}{data_section}, $expected;
-

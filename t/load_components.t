@@ -12,7 +12,6 @@ package My::Component;
 
 sub init {
     my ( $class, $c, $config ) = @_;
-    #push @got, [ $class, ref $c, $config ];
     push @got, [ $class, $c, $config ];
 }
 

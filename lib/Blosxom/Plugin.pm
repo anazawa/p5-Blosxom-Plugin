@@ -37,11 +37,10 @@ sub load_components {
     }
 
     while ( my ($method, $code) = each %method_of ) {
-        my $slot = "$class\::$method";
         if ( ref $code eq 'CODE' ) {
-            unless ( defined &{$slot} ) {
+            unless ( defined &{"$class\::$method"} ) {
                 no strict 'refs';
-                *{ $slot } = $code;
+                *{ "$class\::$method" } = $code;
             }
         }
     }
@@ -68,7 +67,7 @@ Blosxom::Plugin - Base class for Blosxom plugins
 
   sub start {
       my $class = shift;
-      my $template = $class->data_section->{'foo.html'};
+      my $template = $class->data_section->{'my_plugin.html'};
   }
 
   1;
@@ -116,21 +115,7 @@ otherwise C<Blosxom::Plugin> is prepended to it.
 
 This method takes a method name and a subroutine reference,
 and adds the method to the class.
-
-  package my_plugin;
-  use parent 'Blosxom::Plugin';
-  my_plugin->load_components( '+MyComponent' );
-  warn my_plugin->my_component; # 'MyComponent my_component'
-
-  package MyComponent;
-
-  sub init {
-      my ( $class, $c, $config ) = @_;
-      $c->add_method( my_component => \&_my_component );
-      return;
-  }
-
-  sub _my_component { 'MyComponent my_component' }
+Available while loading components.
 
 =back
 

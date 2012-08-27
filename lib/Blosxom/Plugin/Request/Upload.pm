@@ -8,7 +8,7 @@ sub new {
 
     my %header;
     if ( my $header = delete $args{header} ) {
-        my @fields = map { lc $_ } keys %{ $header };
+        my @fields = map { lc } keys %{ $header };
         @header{ @fields } = values %{ $header };
     }
 

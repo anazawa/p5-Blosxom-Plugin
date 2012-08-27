@@ -98,15 +98,21 @@ Blosxom::Plugin::Request - Object representing CGI request
 
 =head1 SYNOPSIS
 
-  use Blosxom::Plugin::Request;
+  package my_plugin;
+  use strict;
+  use warnings;
+  use parent 'Blosxom::Plugin';
 
-  my $request = Blosxom::Plugin::Request->instance;
+  __PACKAGE__->load_components( 'Request' );
 
-  my $method = $request->method; # GET
-  my $path_info = $request->path_info; # /foo/bar.html
-  my $flavour = $request->flavour; # rss
-  my $page = $request->param( 'page' ); # 12
-  my $id = $request->cookie( 'ID' ); # 123456
+  sub start {
+      my $class = shift;
+      my $method = $class->request->method; # GET
+      my $page = $class->request->param( 'page' ); # 12
+      my $id = $class->request->cookie( 'ID' ); # 123456
+  }
+
+  1;
 
 =head1 DESCRIPTION
 
@@ -116,13 +122,13 @@ Object representing CGI request.
 
 =over 4
 
-=item Blosxom::Plugin::Request->begin
+=item Blosxom::Plugin::Request->init
 
 Exports C<instance()> into context class as C<request()>.
 
 =item $request = Blosxom::Plugin::Request->instance
 
-Returns a current Blosxom::Header object instance or create a new one.
+Returns a current Blosxom::Plugin::Request object instance or create a new one.
 
 =item $request = Blosxom::Plugin::Request->has_instance
 
@@ -136,21 +142,19 @@ Returns a reference to any existing instance or C<undef> if none is defined.
 
 =item $request->base
 
-  $blosxom::url
+Not implemented yet.
 
 =item $request->path_info
 
-  $blosxom::path_info
+Not implemented yet.
 
 =item $request->date
 
-  $request->date->{year};  # $blosxom::path_info_yr
-  $request->date->{month}; # $blosxom::path_info_mo_num
-  $request->date->{day};   # $blosxom::path_info_da
+Deprecated.
 
 =item $request->flavour
 
-  $blosxom::flavour
+Deprecated.
 
 =item $request->cookie
 
