@@ -1,4 +1,4 @@
-package Blosxom::Plugin::Request;
+package Blosxom::Plugin::Web::Request;
 use strict;
 use warnings;
 use CGI;
@@ -54,14 +54,14 @@ sub upload {
     my ( $self, $field ) = @_;
 
     $self->{upload} ||= do { 
-        require Blosxom::Plugin::Request::Upload;
+        require Blosxom::Plugin::Web::Request::Upload;
         my $query = $self->{query};
 
         my %upload;
         for my $field ( $query->param ) {
             my @uploads;
             for my $fh ( $query->upload($field) ) {
-                my $upload = Blosxom::Plugin::Request::Upload->new(
+                my $upload = Blosxom::Plugin::Web::Request::Upload->new(
                     fh     => $fh,
                     path   => $query->tmpFileName( $fh ),
                     header => $query->uploadInfo( $fh ),

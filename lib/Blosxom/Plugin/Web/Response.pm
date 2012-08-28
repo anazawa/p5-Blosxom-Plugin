@@ -1,4 +1,4 @@
-package Blosxom::Plugin::Response;
+package Blosxom::Plugin::Web::Response;
 use strict;
 use warnings;
 use Blosxom::Header;

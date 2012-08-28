@@ -14,7 +14,7 @@ sub _data_section {
     my $class = shift;
     $data_section_of{ $class } ||= do {
         my $reader = Data::Section::Simple->new( $class );
-        $reader->get_data_section || +{};
+        $reader->get_data_section;
     };
 }
 

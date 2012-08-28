@@ -5,7 +5,7 @@ package blosxom;
 our $header = {};
 
 package plugin;
-use parent 'Blosxom::Plugin::Core';
+use parent 'Blosxom::Plugin::Web';
 
 package main;
 
@@ -21,18 +21,18 @@ my $util = $class->util;
 isa_ok $util, 'Blosxom::Plugin::Util';
 
 my $res = $class->res;
-isa_ok $res, 'Blosxom::Plugin::Response';
+isa_ok $res, 'Blosxom::Plugin::Web::Response';
 
 my $response = $class->response;
-isa_ok $response, 'Blosxom::Plugin::Response';
+isa_ok $response, 'Blosxom::Plugin::Web::Response';
 
 is $res, $response;
 
 my $req = $class->req;
-isa_ok $req, 'Blosxom::Plugin::Request';
+isa_ok $req, 'Blosxom::Plugin::Web::Request';
 
 my $request = $class->request;
-isa_ok $request, 'Blosxom::Plugin::Request';
+isa_ok $request, 'Blosxom::Plugin::Web::Request';
 
 is $req, $request;
 

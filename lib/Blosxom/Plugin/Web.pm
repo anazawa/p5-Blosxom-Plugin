@@ -1,4 +1,4 @@
-package Blosxom::Plugin::Core;
+package Blosxom::Plugin::Web;
 use strict;
 use warnings;
 use parent 'Blosxom::Plugin';
@@ -7,8 +7,8 @@ use Carp qw/carp/;
 __PACKAGE__->load_components(
     'Util',
     'DataSection',
-    'Request',
-    'Response',
+    'Web::Request',
+    'Web::Response',
 );
 
 sub res { shift->response }
@@ -23,12 +23,12 @@ __END__
 
 =head1 NAME
 
-Blosxom::Plugin::Core - Core set of Blosxom::Plugin modules
+Blosxom::Plugin::Web - Core set of Blosxom::Plugin modules
 
 =head1 SYNOPSIS
 
   # In your plugins
-  use parent 'Blosxom::Plugin::Core';
+  use parent 'Blosxom::Plugin::Web';
 
 =head1 DESCRIPTION
 
