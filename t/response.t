@@ -8,7 +8,7 @@ use Test::More tests => 15;
     our $output = 'foo';
 }
 
-my $response = Blosxom::Plugin::Web::Response->instance;
+my $response = Blosxom::Plugin::Web::Response->new;
 isa_ok $response, 'Blosxom::Plugin::Web::Response';
 can_ok $response, qw(
     body header status content_type cookie redirect location

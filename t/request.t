@@ -10,7 +10,7 @@ local $ENV{HTTP_REFERER}    = 'http://www.blosxom.com/';
 local $ENV{HTTP_USER_AGENT} = 'Chrome';
 
 my $plugin = 'Blosxom::Plugin::Web::Request';
-my $request = $plugin->instance;
+my $request = $plugin->new;
 isa_ok $request, $plugin;
 can_ok $request, qw(
     method cookie content_type referer user_agent address

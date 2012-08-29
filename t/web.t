@@ -1,5 +1,5 @@
 use strict;
-use Test::More tests => 21;
+use Test::More tests => 20;
 
 package blosxom;
 our $header = {};
@@ -13,12 +13,9 @@ my $class = 'plugin';
 
 can_ok $class, qw(
     load_components
-    response res request req util data_section
-    get_template render
+    response res request req data_section
+    util get_template render
 );
-
-my $util = $class->util;
-isa_ok $util, 'Blosxom::Plugin::Util';
 
 my $res = $class->res;
 isa_ok $res, 'Blosxom::Plugin::Web::Response';

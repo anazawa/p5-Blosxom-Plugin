@@ -4,18 +4,30 @@ use warnings;
 use parent 'Blosxom::Plugin';
 use Carp qw/carp/;
 
-__PACKAGE__->load_components(
-    'Util',
-    'DataSection',
-    'Web::Request',
-    'Web::Response',
-);
+__PACKAGE__->load_components( 'DataSection' );
+
+sub util         { carp 'Deprecated' }
+sub get_template { carp 'Deprecated' }
+sub render       { carp 'Deprecated' }
+
+my ( $request, $response );
+
+sub response {
+    $response ||= do {
+        require Blosxom::Plugin::Web::Response;
+        Blosxom::Plugin::Web::Response->new;
+    };
+}
+
+sub request {
+    $request ||= do {
+        require Blosxom::Plugin::Web::Request;
+        Blosxom::Plugin::Web::Request->new;
+    };
+}
 
 sub res { shift->response }
 sub req { shift->request  }
-
-sub get_template { carp 'Deprecated' }
-sub render       { carp 'Deprecated' }
 
 1;
 

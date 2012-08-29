@@ -5,31 +5,19 @@ use Blosxom::Header;
 use Carp qw/croak/;
 use CGI qw/cgi_error/;
 
-sub init {
-    my ( $class, $c ) = @_;
-    $c->add_method( response => sub { $class->instance } );
-}
-
-my $instance;
-
-sub instance {
+sub new {
     my $class = shift;
-
-    return $class    if ref $class;
-    return $instance if defined $instance;
 
     my %self = (
         header => Blosxom::Header->instance,
     );
 
     if ( my $status = cgi_error() ) {
-        $self{header}->{Status} = $status;
+        $self{header}{Status} = $status;
     }
 
-    $instance = bless \%self;
+    bless \%self, $class;
 }
-
-sub has_instance { $instance }
 
 sub header { shift->{header} }
 

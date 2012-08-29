@@ -35,7 +35,7 @@ open STDIN, "< $FindBin::Bin/upload_post_text.txt"
     or die 'missing test file t/upload_post_text.txt';
 binmode STDIN;
 
-my $request = Blosxom::Plugin::Web::Request->instance;
+my $request = Blosxom::Plugin::Web::Request->new;
 
 my @got = sort $request->upload;
 my @expected = qw(

@@ -11,5 +11,5 @@ use Test::More tests => 1;
 local $CGI::POST_MAX = 2;
 local $ENV{CONTENT_LENGTH} = 4;
 
-my $response = Blosxom::Plugin::Web::Response->instance;
+my $response = Blosxom::Plugin::Web::Response->new;
 is $response->status, 413;

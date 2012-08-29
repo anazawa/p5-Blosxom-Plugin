@@ -4,21 +4,11 @@ use warnings;
 use CGI;
 use Carp qw/carp/;
 
-sub init {
-    my ( $class, $c ) = @_;
-    $c->add_method( request => \&_request );
+sub new {
+    my $self = bless {}, shift;
+    $self->{query} = CGI->new;
+    $self;
 }
-
-sub _request { __PACKAGE__->instance }
-
-my $instance;
-
-sub instance {
-    my $class = shift;
-    $instance ||= bless { query => CGI->new }, $class;
-}
-
-sub has_instance { $instance }
 
 sub path_info { carp 'Not implemented yet' }
 sub base      { carp 'Not implemented yet' }
