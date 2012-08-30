@@ -2,6 +2,7 @@ package Blosxom::Plugin;
 use 5.008_009;
 use strict;
 use warnings;
+use Carp qw/croak/;
 
 our $VERSION = '0.00010';
 
@@ -9,16 +10,27 @@ sub load_components {
     my $class  = shift;
     my $prefix = __PACKAGE__;
 
-    my %method_of;
+    #my ( %conflict_of, %method_of, $component );
+
+    #local *add_method = sub {
+    #    my ( $class, $method_name, $code ) = @_;
+    #    croak 'Not a CODE reference' unless ref $code eq 'CODE';
+    #    $conflict_of{ $method_name }{ $code } = $component;
+    #    $method_of{ $method_name } = $code;
+    #    return;
+    #};
+
+    my ( %concrete_method_of, $component );
 
     local *add_method = sub {
-        my ( $class, $method, $code ) = @_;
-        $method_of{ $method } = $code;
+        my ( $class, $method_name, $code ) = @_;
+        croak 'Not a CODE reference' unless ref $code eq 'CODE';
+        $concrete_method_of{ $component }{ $method_name } = $code;
         return;
     };
 
     while ( @_ ) {
-        my $component = do {
+        $component = do {
             my $class = shift;
 
             unless ( $class =~ s/^\+// or $class =~ /^$prefix/ ) {
@@ -31,22 +43,55 @@ sub load_components {
             $class;
         };
 
-        my $config = ref $_[0] eq 'HASH' ? shift : undef;
+        my $parameter = ref $_[0] eq 'HASH' ? shift : undef;
 
-        $component->init( $class, $config );
+        $component->init( $class, $parameter );
     }
 
-    while ( my ($method, $code) = each %method_of ) {
-        if ( ref $code eq 'CODE' ) {
-            unless ( defined &{"$class\::$method"} ) {
-                no strict 'refs';
-                *{ "$class\::$method" } = $code;
+    my ( %method_of, %conflict_of );
+
+    while ( my ($component, $method) = each %concrete_method_of ) {
+        while ( my ($method_name, $code) = each %{$method} ) {
+            unless ( defined &{"$class\::$method_name"} ) {
+                $method_of{ $method_name } = $code;
+                $conflict_of{ $method_name }{ $code } = $component;
             }
         }
     }
 
+    while ( my ($method_name, $component) = each %conflict_of ) {
+        if ( keys %{$component} == 1 ) {
+            delete $conflict_of{ $method_name };
+        }
+    }
+
+    if ( %conflict_of ) {
+        my @conflicts;
+        while ( my ($method_name, $component) = each %conflict_of ) {
+            my $components = join ' and ', sort values %{ $component };
+            my $conflict
+                = "Due to a method name coflict between components"
+                . "'$component', "
+                . "the method '$method_name' must be implemented by '$class'";
+            push @conflicts, $conflict;
+        }
+        croak join "\n", @conflicts;
+    }
+
+    while ( my ($method_name, $code) = each %method_of ) {
+        no strict 'refs';
+        *{ "$class\::$method_name" } = $code;
+    }
+
     return;
 }
+
+sub has_method {
+    my ( $class, $method ) = @_;
+    defined &{ "$class\::$method" };
+}
+
+sub does {}
 
 1;
 
