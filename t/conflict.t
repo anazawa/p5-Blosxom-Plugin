@@ -1,6 +1,7 @@
 use strict;
 use warnings;
 use Test::More tests => 1;
+use Test::Exception;
 
 $INC{'Foo.pm'}++;
 $INC{'Bar.pm'}++;
@@ -26,9 +27,7 @@ sub _foo { 'Foo foo' }
 package my_plugin;
 use parent 'Blosxom::Plugin';
 
-__PACKAGE__->load_components( '+Foo', '+Bar' );
-
 package main;
 
-ok 1;
-
+throws_ok { my_plugin->load_components('+Foo', '+Bar') }
+    qr/^Due to a method name conflict between components/;

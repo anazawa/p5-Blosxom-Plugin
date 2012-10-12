@@ -10,22 +10,14 @@ sub load_components {
     my $class  = shift;
     my $prefix = __PACKAGE__;
 
-    #my ( %conflict_of, %method_of, $component );
-
-    #local *add_method = sub {
-    #    my ( $class, $method_name, $code ) = @_;
-    #    croak 'Not a CODE reference' unless ref $code eq 'CODE';
-    #    $conflict_of{ $method_name }{ $code } = $component;
-    #    $method_of{ $method_name } = $code;
-    #    return;
-    #};
-
-    my ( %concrete_method_of, $component );
+    my ( $component, %method_of, %has_conflict );
 
     local *add_method = sub {
-        my ( $class, $method_name, $code ) = @_;
+        my ( $class, $method, $code ) = @_;
         croak 'Not a CODE reference' unless ref $code eq 'CODE';
-        $concrete_method_of{ $component }{ $method_name } = $code;
+        return if defined &{ "$class\::$method" };
+        push @{ $has_conflict{$method} ||= [] }, $component;
+        $method_of{ $method } = $code;
         return;
     };
 
@@ -43,52 +35,30 @@ sub load_components {
             $class;
         };
 
-        my $parameter = ref $_[0] eq 'HASH' ? shift : undef;
+        my $config = ref $_[0] eq 'HASH' ? shift : undef;
 
-        $component->init( $class, $parameter );
+        $component->init( $class, $config );
     }
 
-    my ( %method_of, %conflict_of );
+    my @methods = grep { @{ $has_conflict{$_} } == 1 } keys %has_conflict;
+    delete @has_conflict{ @methods };
 
-    while ( my ($component, $method) = each %concrete_method_of ) {
-        while ( my ($method_name, $code) = each %{$method} ) {
-            unless ( defined &{"$class\::$method_name"} ) {
-                $method_of{ $method_name } = $code;
-                $conflict_of{ $method_name }{ $code } = $component;
-            }
-        }
-    }
-
-    while ( my ($method_name, $component) = each %conflict_of ) {
-        if ( keys %{$component} == 1 ) {
-            delete $conflict_of{ $method_name };
-        }
-    }
-
-    if ( %conflict_of ) {
-        my @conflicts;
-        while ( my ($method_name, $component) = each %conflict_of ) {
-            my $components = join ' and ', sort values %{ $component };
-            my $conflict
-                = "Due to a method name coflict between components"
-                . "'$component', "
-                . "the method '$method_name' must be implemented by '$class'";
-            push @conflicts, $conflict;
-        }
-        croak join "\n", @conflicts;
-    }
-
-    while ( my ($method_name, $code) = each %method_of ) {
+    unless ( %has_conflict ) {
         no strict 'refs';
-        *{ "$class\::$method_name" } = $code;
+        *{ "$class\::$_" } = $method_of{ $_ } for @methods;
+        return;
     }
 
-    return;
+    croak(join "\n", map {
+        my $components = join ' and ', sort @{ $has_conflict{$_} };
+        "Due to a method name conflict between components '$components', " .
+        "the method '$_' must be implemented by '$class'";
+    } keys %has_conflict);
 }
 
 sub has_method {
     my ( $class, $method ) = @_;
-    defined &{ "$class\::$method" };
+    defined &{"$class\::$method"};
 }
 
 sub does {}
