@@ -10,24 +10,31 @@ sub util         { carp 'Deprecated' }
 sub get_template { carp 'Deprecated' }
 sub render       { carp 'Deprecated' }
 
-my ( $request, $response );
-
-sub response {
-    $response ||= do {
-        require Blosxom::Plugin::Web::Response;
-        Blosxom::Plugin::Web::Response->new;
-    };
-}
+our ( $Request, $Response );
 
 sub request {
-    $request ||= do {
+    $Request ||= do {
         require Blosxom::Plugin::Web::Request;
         Blosxom::Plugin::Web::Request->new;
     };
 }
 
-sub res { shift->response }
-sub req { shift->request  }
+sub response {
+    $Response ||= do {
+        require Blosxom::Plugin::Web::Response;
+        Blosxom::Plugin::Web::Response->new;
+    };
+}
+
+BEGIN {
+    *req = \&request;
+    *res = \&response;
+}
+
+sub end {
+    undef $Response;
+    undef $Request;
+}
 
 1;
 

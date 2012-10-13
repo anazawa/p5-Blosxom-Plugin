@@ -1,5 +1,7 @@
 Revision history for Perl extension Blosxom::Plugin.
 
+  - a meta plugin is a role which can be parametrized by consumers
+
 0.00010  Aug 27th, 2012
   - Blosxom::Plugin should be orthogonal to blosxom.cgi.
     Methods which depend on $blosxom::* will be removed gradually
