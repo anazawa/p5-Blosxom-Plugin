@@ -58,13 +58,7 @@ The core components currently are:
 
 =over 4
 
-=item L<Blosxom::Plugin::Request>
-
-=item L<Blosxom::Plugin::Response>
-
 =item L<Blosxom::Plugin::DataSection>
-
-=item L<Blosxom::Plugin::Util>
 
 =back
 
@@ -77,17 +71,17 @@ and implements the following new ones.
 
 =item $class->response, $class->res
 
-Returns a L<Blosxom::Plugin::Response> object.
+Returns a L<Blosxom::Plugin::Web::Response> object.
 
 =item $class->request, $class->req
 
-Returns a L<Blosxom::Plugin::Request> object.
+Returns a L<Blosxom::Plugin::Web::Request> object.
 
 =item $class->util
 
-Returns a L<Blosxom::Plugin::Util> object.
+Deprecated.
 
-=item $class->data_section
+=item $class->get_data_section
 
 See L<Blosxom::Plugin::DataSection>.
 

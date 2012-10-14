@@ -10,10 +10,19 @@ sub load_components {
     my $class  = shift;
     my $prefix = __PACKAGE__;
 
-    my %concrete_method_of;
+    my ( $component, %has_conflict, %code_of );
+
+    local *add_method = sub {
+        my ( $context, $method, $code ) = @_;
+        croak 'Not a CODE reference' unless ref $code eq 'CODE';
+        return if defined &{ "$context\::$method" };
+        push @{ $has_conflict{$method} ||= [] }, $component;
+        $code_of{ $method } = $code;
+        return;
+    };
 
     while ( @_ ) {
-        my $component = do {
+        $component = do {
             my $class = shift;
 
             unless ( $class =~ s/^\+// or $class =~ /^$prefix/ ) {
@@ -28,34 +37,15 @@ sub load_components {
 
         my $config = ref $_[0] eq 'HASH' ? shift : undef;
 
-        next unless $component->can( 'init' );
-
-        local *add_method = sub {
-            my ( $class, $method, $code ) = @_;
-            croak 'Not a CODE reference' unless ref $code eq 'CODE';
-            $concrete_method_of{ $component }{ $method } = $code;
-            return;
-        };
-
         $component->init( $class, $config );
     }
+    
+    no strict 'refs';
 
-    my ( %has_conflict, %code_of );
-    while ( my ($component, $methods) = each %concrete_method_of ) {
-        while ( my ($method, $code) = each %{$methods} ) {
-            unless ( defined &{"$class\::$method"} ) {
-                push @{ $has_conflict{$method} ||= [] }, $component;
-                $code_of{ $method } = $code;
-            }
-        }
-    }
-
-    {
-        no strict 'refs';
-        while ( my ($method, $components) = each %has_conflict ) {
-            delete $has_conflict{ $method } if @{ $components } == 1;
-            *{ "$class\::$method" } = $code_of{ $method }; # add method
-        }
+    while ( my ($method, $components) = each %has_conflict ) {
+        next unless @{ $components } == 1;
+        *{ "$class\::$method" } = $code_of{ $method };
+        delete $has_conflict{ $method };
     }
 
     if ( %has_conflict ) {
@@ -137,11 +127,32 @@ If a module begins with a C<+> character,
 it is taken to be a fully qualified class name,
 otherwise C<Blosxom::Plugin> is prepended to it.
 
+  package my_plugin;
+  use parent 'Blosxom::Plugin';
+  __PACKAGE__->load_components( '+MyComponent' );
+
+This method calls C<init()> method of each component.
+C<init()> is called as follows:
+
+  MyComponent->init( 'my_plugin' );
+
 =item $class->add_method( $method => $coderef )
 
 This method takes a method name and a subroutine reference,
 and adds the method to the class.
 Available while loading components.
+
+  package MyComponent;
+
+  sub init {
+      my ( $class, $context ) = @_;
+      $context->add_method( foo => sub { ... } );
+  }
+
+=item $bool = $class->has_method( $method )
+
+Returns a Boolean value telling whether or not the class defines the named
+method. It does not include methods inherited from parent classes.
 
 =back
 
@@ -151,7 +162,7 @@ L<Blosxom 2.0.0|http://blosxom.sourceforge.net/> or higher.
 
 =head1 SEE ALSO
 
-L<Blosxom::Plugin::Core>,
+L<Blosxom::Plugin::Web>,
 L<Amon2>
 
 =head1 ACKNOWLEDGEMENT

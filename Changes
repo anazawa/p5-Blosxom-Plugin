@@ -1,6 +1,11 @@
 Revision history for Perl extension Blosxom::Plugin.
 
-  - a meta plugin is a role which can be parametrized by consumers
+  - load_components() doesn't add_method() when the named method is defined
+    by the context class, and also throws an exception
+    when a method name conflicts with each other
+  - [DataSection] rename data_section() to get_data_section()
+  - [Core] renamed to Web.pm
+  - [Util] removed
 
 0.00010  Aug 27th, 2012
   - Blosxom::Plugin should be orthogonal to blosxom.cgi.

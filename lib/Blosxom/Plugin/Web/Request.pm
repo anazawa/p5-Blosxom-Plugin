@@ -84,51 +84,27 @@ __END__
 
 =head1 NAME
 
-Blosxom::Plugin::Request - Object representing CGI request
+Blosxom::Plugin::Web::Request - Object representing CGI request
 
 =head1 SYNOPSIS
 
-  package my_plugin;
-  use strict;
-  use warnings;
-  use parent 'Blosxom::Plugin';
-
-  __PACKAGE__->load_components( 'Request' );
-
-  sub start {
-      my $class = shift;
-      my $method = $class->request->method; # GET
-      my $page = $class->request->param( 'page' ); # 12
-      my $id = $class->request->cookie( 'ID' ); # 123456
-  }
-
-  1;
+  use Blosxom::Plugin::Web::Request;
+  my $request = Blosxom::Plugin::Web::Request->new;
+  my $method = $request->method; # GET
+  my $page = $request->param( 'page' ); # 12
+  my $id = $request->cookie( 'ID' ); # 123456
 
 =head1 DESCRIPTION
 
 Object representing CGI request.
 
-=head2 CLASS METHODS
+=head2 METHODS
 
 =over 4
 
-=item Blosxom::Plugin::Request->init
+=item $request = Blosxom::Plugin::Web->new
 
-Exports C<instance()> into context class as C<request()>.
-
-=item $request = Blosxom::Plugin::Request->instance
-
-Returns a current Blosxom::Plugin::Request object instance or create a new one.
-
-=item $request = Blosxom::Plugin::Request->has_instance
-
-Returns a reference to any existing instance or C<undef> if none is defined.
-
-=back
-
-=head2 INSTANCE METHODS
-
-=over 4
+Create a Blosxom::Plugin::Web object.
 
 =item $request->base
 
@@ -202,7 +178,7 @@ Returns the protocol (HTTP/1.0 or HTTP/1.1) used for the current request.
 
 =item $request->upload
 
-Returns L<Blosxom::Plugin::Request::Upload> objects.
+Returns L<Blosxom::Plugin::Web::Request::Upload> objects.
 
   my $upload = $request->upload( 'field' );
   my @uploads = $request->upload( 'field' );
@@ -222,7 +198,7 @@ Returns the value of the specified header.
 
 =head1 SEE ALSO
 
-L<Blosxom::Plugin>, L<Plack::Request>, L<Class::Singleton>
+L<Blosxom::Plugin>, L<Plack::Request>
 
 =head1 AUTHOR
 
