@@ -14,7 +14,7 @@ sub _get_data_section {
     my ( $class, $name ) = @_;
     $data_section_of{ $class } ||= do {
         my $reader = Data::Section::Simple->new( $class );
-        $reader->get_data_section;
+        $reader->get_data_section || +{};
     };
     $data_section_of{ $class }{ $name };
 }

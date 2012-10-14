@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use Carp qw/croak/;
 
-our $VERSION = '0.00010';
+our $VERSION = '0.01000';
 
 sub load_components {
     my $class  = shift;
