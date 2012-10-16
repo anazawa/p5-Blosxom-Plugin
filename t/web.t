@@ -13,7 +13,7 @@ my $class = 'plugin';
 
 can_ok $class, qw(
     load_components
-    response res request req get_data_section
+    response res request req
     util get_template render
 );
 

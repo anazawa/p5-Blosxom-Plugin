@@ -102,9 +102,9 @@ Object representing CGI request.
 
 =over 4
 
-=item $request = Blosxom::Plugin::Web->new
+=item $request = Blosxom::Plugin::Web::Request->new
 
-Create a Blosxom::Plugin::Web object.
+Create a Blosxom::Plugin::Web::Request object.
 
 =item $request->base
 

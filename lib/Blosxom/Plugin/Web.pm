@@ -3,8 +3,9 @@ use strict;
 use warnings;
 use parent 'Blosxom::Plugin';
 use Carp qw/carp/;
+use Data::Section::Simple;
 
-__PACKAGE__->load_components( 'DataSection' );
+#__PACKAGE__->load_components( 'DataSection' );
 
 sub util         { carp 'Deprecated' }
 sub get_template { carp 'Deprecated' }

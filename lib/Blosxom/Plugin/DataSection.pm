@@ -1,22 +1,36 @@
 package Blosxom::Plugin::DataSection;
 use strict;
 use warnings;
+use Carp qw/croak/;
 use Data::Section::Simple;
 
-sub init {
-    my ( $class, $c ) = @_;
-    $c->add_method( get_data_section => \&_get_data_section );
-}
+my @export = qw( get_data_section merge_data_section_into );
 
 my %data_section_of;
 
-sub _get_data_section {
-    my ( $class, $name ) = @_;
-    $data_section_of{ $class } ||= do {
-        my $reader = Data::Section::Simple->new( $class );
-        $reader->get_data_section || +{};
-    };
-    $data_section_of{ $class }{ $name };
+sub init {
+    my ( $class, $context ) = @_;
+    my $reader = Data::Section::Simple->new( $context );
+    $data_section_of{ $context } = $reader->get_data_section;
+    $context->add_method( $_ => \&{"_$_"} ) for @export;
+    return;
+}
+
+sub _get_data_section { $data_section_of{$_[0]}{$_[1]} }
+
+sub _merge_data_section_into {
+    my $class      = shift;
+    my $merge_into = shift;
+    my $data       = $data_section_of{ $class };
+
+    croak 'Not a HASH reference' unless ref $merge_into eq 'HASH';
+
+    while ( my ($basename, $template) = each %{ $data } ) {
+        my ( $chunk, $flavour ) = $basename =~ /(.*)\.([^.]*)/;
+        $merge_into->{ $flavour }{ $chunk } = $template;
+    }
+
+    return;
 }
 
 1;
@@ -38,7 +52,18 @@ Blosxom::Plugin::DataSection - Read data from __DATA__
 
   sub start {
       my $class = shift;
-      my $template = $class->data_section->{'my_plugin.html'};
+
+      # merge __DATA__ into Blosxom default templates
+      $class->merge_data_section_into( \%blosxom::template );
+
+      return 1;
+  }
+
+  sub head {
+      my $class = shift;
+      my $template = $class->get_data_section( 'my_plugin.html' );
+      $template = $blosxom::interpolate->( $template );
+      return;
   }
 
   1;
@@ -60,7 +85,8 @@ Blosxom::Plugin::DataSection - Read data from __DATA__
 
 =head1 DESCRIPTION
 
-This module extracts data from C<__DATA__> section of the plugin.
+This module extracts data from C<__DATA__> section of the plugin,
+and also merges them into Blosxom default templates.
 
 =head1 SEE ALSO
 
