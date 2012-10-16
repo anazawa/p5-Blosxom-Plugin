@@ -14,7 +14,7 @@ my $class = 'plugin';
 can_ok $class, qw(
     load_components
     response res request req
-    util get_template render
+    get_data_section merge_data_section_into
 );
 
 my $res = $class->res;
@@ -34,7 +34,7 @@ isa_ok $request, 'Blosxom::Plugin::Web::Request';
 is $req, $request;
 
 SKIP: {
-    skip 'Web.pm implements end()', 13;
+    skip 'Plugin.pm implements end()', 13;
 
     my @reserved_methods = qw(
         start       template entries filter skip

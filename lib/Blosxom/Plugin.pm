@@ -6,6 +6,19 @@ use Carp qw/croak/;
 
 our $VERSION = '0.01000';
 
+my %instance;
+
+sub instance {
+    my $class = shift;
+    $instance{ $class } ||= bless {}, $class;
+}
+
+sub end {
+    my $class = shift;
+    delete $instance{ $class };
+    return;
+}
+
 sub load_components {
     my $class  = shift;
     my $prefix = __PACKAGE__;
@@ -78,15 +91,19 @@ Blosxom::Plugin - Base class for Blosxom plugins
   use warnings;
   use parent 'Blosxom::Plugin';
 
-  __PACKAGE__->load_components(
-      DataSection => {
-          merge_into => \%blosxom::template,
-      },
-  );
+  __PACKAGE__->load_components( 'DataSection' );
 
   sub start {
       my $class = shift;
-      my $template = $class->data_section->{'my_plugin.html'};
+
+      my $template = $class->get_data_section( 'my_plugin.html' );
+      # <!DOCTYPE html>
+      # ...
+
+      # merge __DATA__ into Blosxom default templates
+      $class->merge_data_section_into( \%blosxom::template );
+
+      return 1;
   }
 
   1;
@@ -183,9 +200,10 @@ L<Blosxom 2.0.0|http://blosxom.sourceforge.net/> or higher.
 
 =head1 SEE ALSO
 
-L<Blosxom::Plugin::Web>,
+L<Blosxom::Plugin::DataSection>,
 L<Amon2>,
-L<Role::Tiny>
+L<Moose::Manual::Roles>,
+L<MooseX::Role::Parameterized::Tutorial>
 
 =head1 ACKNOWLEDGEMENT
 

@@ -78,6 +78,8 @@ sub upload {
     return;
 }
 
+sub DESTROY { CGI::initialize_globals() }
+
 1;
 
 __END__
