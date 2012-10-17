@@ -73,6 +73,8 @@ Deprecated.
 
 =item $class->get_data_section
 
+=item $class->merge_get_data_section_into
+
 See L<Blosxom::Plugin::DataSection>.
 
 =item $rendered = $class->render

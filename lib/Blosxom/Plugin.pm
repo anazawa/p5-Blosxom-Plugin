@@ -4,18 +4,18 @@ use strict;
 use warnings;
 use Carp qw/croak/;
 
-our $VERSION = '0.01000';
+our $VERSION = '0.01001';
 
-my %instance;
+my %instance_of;
 
 sub instance {
-    my $class = shift;
-    $instance{ $class } ||= bless {}, $class;
+    my $class = shift; 
+    $instance_of{ $class } ||= bless {}, $class;
 }
 
 sub end {
     my $class = shift;
-    delete $instance{ $class };
+    delete $instance_of{ $class };
     return;
 }
 
@@ -51,7 +51,7 @@ sub load_components {
 
         $component->init( $class, $config );
     }
-    
+
     if ( %code_of ) {
         no strict 'refs';
         while ( my ($method, $components) = each %has_conflict ) {
@@ -200,7 +200,7 @@ L<Blosxom 2.0.0|http://blosxom.sourceforge.net/> or higher.
 
 =head1 SEE ALSO
 
-L<Blosxom::Plugin::DataSection>,
+L<Blosxom::Plugin::Web>,
 L<Amon2>,
 L<Moose::Manual::Roles>,
 L<MooseX::Role::Parameterized::Tutorial>

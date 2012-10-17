@@ -1,15 +1,13 @@
 use strict;
+use parent 'Blosxom::Plugin::Web';
 use Test::More tests => 20;
 
 package blosxom;
 our $header = {};
 
-package plugin;
-use parent 'Blosxom::Plugin::Web';
-
 package main;
 
-my $class = 'plugin';
+my $class = __PACKAGE__;
 
 can_ok $class, qw(
     load_components

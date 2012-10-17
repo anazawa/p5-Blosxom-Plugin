@@ -4,15 +4,15 @@ use warnings;
 use Carp qw/croak/;
 use Data::Section::Simple;
 
-my @export = qw( _data_section get_data_section merge_data_section_into );
+my @exports = qw( data_section get_data_section merge_data_section_into );
 
 sub init {
-    my ( $class, $context ) = @_;
-    $context->add_method( $_ => \&{"_$_"} ) for @export;
+    my ( $class, $c ) = @_;
+    $c->add_method( $_ => \&{"_$_"} ) for @exports;
     return;
 }
 
-sub __data_section {
+sub _data_section {
     my $class = shift;
     $class->instance->{data_section} ||= do {
         my $reader = Data::Section::Simple->new( $class );
@@ -20,20 +20,16 @@ sub __data_section {
     };
 }
 
-sub _get_data_section { shift->_data_section->{$_[0]} }
+sub _get_data_section { shift->data_section->{$_[0]} }
 
 sub _merge_data_section_into {
     my ( $class, $merge_into ) = @_;
 
-    if ( ref $merge_into eq 'HASH' ) {
-        my $data_section = $class->_data_section;
-        while ( my ($basename, $template) = each %{ $data_section } ) {
-            my ( $chunk, $flavour ) = $basename =~ /(.*)\.([^.]*)/;
-            $merge_into->{ $flavour }{ $chunk } = $template;
-        }
-    }
-    else {
-        croak 'Must provide a HASH reference';
+    croak 'Must provide a HASH reference' if ref $merge_into ne 'HASH';
+
+    while ( my ($basename, $template) = each %{ $class->data_section } ) {
+        my ( $chunk, $flavour ) = $basename =~ /(.*)\.([^.]*)/;
+        $merge_into->{ $flavour }{ $chunk } = $template;
     }
 
     return;
