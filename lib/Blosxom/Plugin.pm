@@ -9,7 +9,7 @@ our $VERSION = '0.01001';
 my %instance_of;
 
 sub instance {
-    my $class = shift; 
+    my $class = ref $_[0] || $_[0]; 
     $instance_of{ $class } ||= bless {}, $class;
 }
 
@@ -18,6 +18,26 @@ sub end {
     delete $instance_of{ $class };
     return;
 }
+
+my %make_attribute = (
+    accessor => sub {
+        my $field = shift;
+        return sub {
+            my $self = shift->instance;
+            $self->{ $field } = shift if @_;
+            $self->{ $field };
+        };
+    },
+    lazy_build => sub {
+        my ( $name, $build ) = @_;
+        return sub {
+            my $self = shift->instance;
+            $self->{ $name } = shift if @_;
+            $self->{ $name } = $self->$build unless exists $self->{ $name };
+            $self->{ $name };
+        };
+    },
+);
 
 sub load_components {
     my $class  = shift;
@@ -29,8 +49,17 @@ sub load_components {
         my ( $class, $method, $code ) = @_;
         return if defined &{ "$class\::$method" };
         push @{ $has_conflict{$method} ||= [] }, $component;
-        $code_of{ $method } = $code;
+        $code_of{ $method } = $code || $component->can( $method );
         return;
+    };
+
+    local *add_attribute = sub {
+        my ( $class, $name, $builder ) = @_;
+        $builder ||= $component->can( "_build_$name" );
+        $class->add_method($name => do {
+            my $type = $builder ? 'lazy_build' : 'accessor';
+            $make_attribute{ $type }->( $name, $builder );
+        });
     };
 
     while ( @_ ) {
@@ -56,7 +85,7 @@ sub load_components {
         no strict 'refs';
         while ( my ($method, $components) = each %has_conflict ) {
             delete $has_conflict{ $method } if @{ $components } == 1;
-            *{ "$class\::$method" } = $code_of{ $method };
+            *{ "$class\::$method" } = delete $code_of{ $method };
         }
     }
 

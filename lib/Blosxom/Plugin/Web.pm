@@ -5,17 +5,22 @@ use parent 'Blosxom::Plugin';
 
 __PACKAGE__->load_components( 'DataSection' );
 
+#sub _response {
+#    my $self = shift;
+#    unless ( $self->
+#}
+
 sub request {
-    my $class = shift;
-    $class->instance->{request} ||= do {
+    my $self = shift->instance;
+    $self->{request} ||= do {
         require Blosxom::Plugin::Web::Request;
         Blosxom::Plugin::Web::Request->new;
     };
 }
 
 sub response {
-    my $class = shift;
-    $class->instance->{response} ||= do {
+    my $self = shift->instance;
+    $self->{response} ||= do {
         require Blosxom::Plugin::Web::Response;
         Blosxom::Plugin::Web::Response->new;
     };
@@ -73,7 +78,7 @@ Deprecated.
 
 =item $class->get_data_section
 
-=item $class->merge_get_data_section_into
+=item $class->merge_data_section_into
 
 See L<Blosxom::Plugin::DataSection>.
 
