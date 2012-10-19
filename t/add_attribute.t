@@ -8,7 +8,7 @@ package MyComponent;
 
 sub init {
     my ( $class, $c ) = @_;
-    $c->add_attribute( 'foo' );
+    $c->add_accessor( 'foo' );
     return;
 }
 

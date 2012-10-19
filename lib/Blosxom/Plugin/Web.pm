@@ -3,33 +3,21 @@ use strict;
 use warnings;
 use parent 'Blosxom::Plugin';
 
-__PACKAGE__->load_components( 'DataSection' );
-
-#sub _response {
-#    my $self = shift;
-#    unless ( $self->
-#}
-
-sub request {
-    my $self = shift->instance;
-    $self->{request} ||= do {
+__PACKAGE__->mk_accessors(
+    request => sub {
         require Blosxom::Plugin::Web::Request;
         Blosxom::Plugin::Web::Request->new;
-    };
-}
-
-sub response {
-    my $self = shift->instance;
-    $self->{response} ||= do {
+    },
+    response => sub {
         require Blosxom::Plugin::Web::Response;
         Blosxom::Plugin::Web::Response->new;
-    };
-}
+    },
+);
 
-BEGIN {
-    *req = \&request;
-    *res = \&response;
-}
+*req = \&request;
+*res = \&response;
+
+__PACKAGE__->load_components( 'DataSection' );
 
 1;
 

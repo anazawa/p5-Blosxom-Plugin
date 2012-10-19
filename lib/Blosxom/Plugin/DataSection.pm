@@ -1,20 +1,18 @@
 package Blosxom::Plugin::DataSection;
 use strict;
 use warnings;
-use Carp qw/croak/;
 use Data::Section::Simple;
 
 sub init {
     my ( $class, $c ) = @_;
-    $c->add_attribute( 'data_section' );
-    $c->add_method( 'get_data_section' );
-    $c->add_method( 'merge_data_section_into' );
+    $c->add_accessor( 'data_section' );
+    $c->add_method( $_ ) for qw( get_data_section merge_data_section_into );
     return;
 }
 
 sub _build_data_section {
     my $self = shift;
-    my $reader = Data::Section::Simple->new( ref $self );
+    my $reader = Data::Section::Simple->new( $self );
     $reader->get_data_section;
 }
 
@@ -22,16 +20,10 @@ sub get_data_section { shift->data_section->{$_[0]} }
 
 sub merge_data_section_into {
     my ( $self, $merge_into ) = @_;
-
-    croak 'Must provide a HASH reference' if ref $merge_into ne 'HASH';
-
-    my $data_section = $self->data_section;
-    while ( my ($basename, $template) = each %{ $data_section } ) {
+    while ( my ($basename, $template) = each %{ $self->data_section } ) {
         my ( $chunk, $flavour ) = $basename =~ /(.*)\.([^.]*)/;
         $merge_into->{ $flavour }{ $chunk } = $template;
     }
-
-    return;
 }
 
 1;

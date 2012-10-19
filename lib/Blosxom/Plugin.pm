@@ -8,9 +8,15 @@ our $VERSION = '0.01001';
 
 my %instance_of;
 
-sub instance {
-    my $class = ref $_[0] || $_[0]; 
-    $instance_of{ $class } ||= bless {}, $class;
+sub make_accessor {
+    my ( $class, $field, $default ) = @_;
+    my $build = ref $default eq 'CODE' ? $default : sub { $default };
+    return sub {
+        my $self = $instance_of{ $class } ||= {};
+        return $self->{ $field } = $_[1] if @_ == 2;
+        return $self->{ $field } if exists $self->{ $field };
+        return $self->{ $field } = $class->$build;
+    };
 }
 
 sub end {
@@ -19,25 +25,15 @@ sub end {
     return;
 }
 
-my %make_attribute = (
-    accessor => sub {
+sub mk_accessors {
+    my $class = shift;
+    no strict 'refs';
+    while ( @_ ) {
         my $field = shift;
-        return sub {
-            my $self = shift->instance;
-            $self->{ $field } = shift if @_;
-            $self->{ $field };
-        };
-    },
-    lazy_build => sub {
-        my ( $name, $build ) = @_;
-        return sub {
-            my $self = shift->instance;
-            $self->{ $name } = shift if @_;
-            $self->{ $name } = $self->$build unless exists $self->{ $name };
-            $self->{ $name };
-        };
-    },
-);
+        my $default = ref $_[0] eq 'CODE' ? shift : undef;
+        *{ "$class\::$field" } = $class->make_accessor( $field, $default );
+    }
+}
 
 sub load_components {
     my $class  = shift;
@@ -53,13 +49,11 @@ sub load_components {
         return;
     };
 
-    local *add_attribute = sub {
-        my ( $class, $name, $builder ) = @_;
-        $builder ||= $component->can( "_build_$name" );
-        $class->add_method($name => do {
-            my $type = $builder ? 'lazy_build' : 'accessor';
-            $make_attribute{ $type }->( $name, $builder );
-        });
+    local *add_accessor = sub {
+        my ( $class, $field, $builder ) = @_;
+        $builder ||= $component->can( "_build_$field" );
+        my $accessor = $class->make_accessor( $field, $builder );
+        $class->add_method( $field => $accessor );
     };
 
     while ( @_ ) {
@@ -120,17 +114,24 @@ Blosxom::Plugin - Base class for Blosxom plugins
   use warnings;
   use parent 'Blosxom::Plugin';
 
+  # generates foo()
+  __PACKAGE__->mk_accessors( 'foo' );
+
+  # does 'Blosxom::Plugin::DataSection'
   __PACKAGE__->load_components( 'DataSection' );
 
   sub start {
-      my $class = shift;
+      my $self = shift; # => "my_plugin"
 
-      my $template = $class->get_data_section( 'my_plugin.html' );
+      $self->foo( 'bar' );
+      my $value = $self->foo; # => "bar"
+
+      my $template = $self->get_data_section( 'my_plugin.html' );
       # <!DOCTYPE html>
       # ...
 
       # merge __DATA__ into Blosxom default templates
-      $class->merge_data_section_into( \%blosxom::template );
+      $self->merge_data_section_into( \%blosxom::template );
 
       return 1;
   }
