@@ -20,6 +20,4 @@ my $class = 'main';
 
 $class->foo( 'bar' );
 
-warn $class->foo;
-
-ok 1;
+ok $class->foo, 'bar';

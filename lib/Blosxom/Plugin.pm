@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use Carp qw/croak/;
 
-our $VERSION = '0.01001';
+our $VERSION = '0.01002';
 
 my %instance_of;
 
