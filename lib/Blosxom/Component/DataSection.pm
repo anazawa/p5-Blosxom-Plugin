@@ -5,9 +5,9 @@ use parent 'Blosxom::Component';
 use Data::Section::Simple;
 
 sub init {
-    my ( $class, $meta ) = @_;
-    $meta->add_attribute( 'data_section' );
-    $class->SUPER::init( $meta );
+    my ( $class, $caller ) = @_;
+    $caller->add_attribute( 'data_section' );
+    $class->SUPER::init( $caller );
 }
 
 sub _build_data_section {
@@ -32,7 +32,7 @@ __END__
 
 =head1 NAME
 
-Blosxom::Plugin::DataSection - Read data from __DATA__
+Blosxom::Component::DataSection - Read data from __DATA__
 
 =head1 SYNOPSIS
 

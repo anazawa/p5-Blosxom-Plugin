@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use Carp qw/croak/;
 
-our $VERSION = '0.01004';
+our $VERSION = '0.02000';
 
 my %attribute_of;
 
@@ -131,7 +131,7 @@ Blosxom::Plugin - Base class for Blosxom plugins
   # generates a class attribute called foo()
   __PACKAGE__->mk_accessors( 'foo' );
 
-  # does Blosxom::Plugin::DataSection
+  # does Blosxom::Component::DataSection
   __PACKAGE__->load_components( 'DataSection' );
 
   sub start {
@@ -225,7 +225,7 @@ Loads the given components into the current module.
 Components can be configured by the loaders.
 If a module begins with a C<+> character,
 it is taken to be a fully qualified class name,
-otherwise C<Blosxom::Plugin> is prepended to it.
+otherwise C<Blosxom::Component> is prepended to it.
 
   __PACKAGE__->load_components( '+MyComponent' => \%config );
 
