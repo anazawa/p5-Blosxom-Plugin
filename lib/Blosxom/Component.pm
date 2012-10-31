@@ -7,25 +7,28 @@ my %attribute_of;
 sub mk_accessors {
     my $class = shift;
     while ( @_ ) {
-        my $field = shift;
+        my $name = shift;
         my $default = ref $_[0] eq 'CODE' ? shift : undef;
-        $attribute_of{ $class }{ $field } = $default;
+        $attribute_of{ $class }{ $name } = $default;
     }
 }
 
 sub init {
-    my ( $class, $caller ) = @_;
+    my $class  = shift;
+    my $caller = shift;
+    my $stash  = do { no strict 'refs'; \%{"$class\::"} };
 
-    my $namespace = do { no strict 'refs'; \%{"$class\::"} };
-    while ( my ($method, $glob) = each %{$namespace} ) {
-        if ( defined *{$glob}{CODE} and $method ne 'init' ) {
-            $caller->add_method( $method => *{$glob}{CODE} );
+    # NOTE: use keys() instead
+    while ( my ($name, $glob) = each %{$stash} ) {
+        if ( defined *{$glob}{CODE} and $name ne 'init' ) {
+            $caller->add_method( $name => *{$glob}{CODE} );
         }
     }
 
-    if ( my $attributes = $attribute_of{$class} ) {
-        while ( my ($field, $default) = each %{$attributes} ) {
-            $caller->add_attribute( $field => $default );
+    if ( my $attribute = $attribute_of{$class} ) {
+        while ( my ($name, $default) = each %{$attribute} ) {
+            my $accessor = $caller->make_accessor( $name, $default );
+            $caller->add_method( $name => $accessor );
         }
     }
 
