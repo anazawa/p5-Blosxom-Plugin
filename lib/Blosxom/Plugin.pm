@@ -2,9 +2,8 @@ package Blosxom::Plugin;
 use 5.008_009;
 use strict;
 use warnings;
-use Carp qw/croak/;
 
-our $VERSION = '0.02000';
+our $VERSION = '0.02001';
 
 my %attribute_of;
 
@@ -89,11 +88,12 @@ sub load_components {
     }
 
     if ( %has_conflict ) {
-        croak join "\n", map {
+        require Carp;
+        Carp::croak(join "\n", map {
             "Due to a method name conflict between components " .
             "'" . join( ' and ', sort @{ $has_conflict{$_} } ) . "', " .
             "the method '$_' must be implemented by '$class'";
-        } keys %has_conflict;
+        } keys %has_conflict);
     }
 
     return;
@@ -249,9 +249,21 @@ If a method is already defined on the class, that method will not be added.
       $caller->add_method( 'foo' => sub { ... } );
   }
 
-=item $class->add_attribute
+=item $class->add_attribute( $attribute_name )
 
-DEPRECATED
+=item $class->add_attribute( $attribute_name, \&default )
+
+This method takes an attribute name, and adds the attribute to the class.
+Available while loading components.
+Attributes can have default values which is not generated
+until the attribute is read.
+C<&default> is called as a method on the class with no additional arguments.
+
+  sub init {
+      my ( $class, $caller ) = @_;
+      $caller->add_attribute( 'foo' );
+      $caller->add_attribute( 'bar' => sub { ... } );
+  }
 
 =item $bool = $class->has_method( $method_name )
 

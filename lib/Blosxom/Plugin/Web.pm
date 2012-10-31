@@ -18,7 +18,7 @@ BEGIN { *req = \&request }
 
 sub end {
     my $class = shift;
-    undef $request if defined $request;
+    undef $request if $request;
     $class->SUPER::end;
 }
 
