@@ -1,15 +1,21 @@
 package Blosxom::Component;
 use strict;
 use warnings;
+use Carp qw/croak/;
 
-my %attribute_of;
+my ( %attribute_of, %requires );
+
+sub requires {
+    my ( $class, @methods ) = @_;
+    push @{ $requires{$class} ||= [] }, @methods;
+}
 
 sub mk_accessors {
     my $class = shift;
     while ( @_ ) {
-        my $name = shift;
+        my $field = shift;
         my $default = ref $_[0] eq 'CODE' ? shift : undef;
-        $attribute_of{ $class }{ $name } = $default;
+        $attribute_of{ $class }{ $field } = $default;
     }
 }
 
@@ -18,17 +24,23 @@ sub init {
     my $caller = shift;
     my $stash  = do { no strict 'refs'; \%{"$class\::"} };
 
+    if ( my $requires = $requires{$class} ) {
+        my @methods = grep { !$caller->can($_) } @{$requires};
+        croak "Can't apply '$class' to '$caller' - missing " .
+              join( ', ', @methods ) if @methods;
+    }
+
+    if ( my $attribute = $attribute_of{$class} ) {
+        while ( my ($field, $default) = each %{$attribute} ) {
+            my $accessor = $caller->make_accessor( $field, $default );
+            $caller->add_method( $field => $accessor );
+        }
+    }
+
     # NOTE: use keys() instead
     while ( my ($name, $glob) = each %{$stash} ) {
         if ( defined *{$glob}{CODE} and $name ne 'init' ) {
             $caller->add_method( $name => *{$glob}{CODE} );
-        }
-    }
-
-    if ( my $attribute = $attribute_of{$class} ) {
-        while ( my ($name, $default) = each %{$attribute} ) {
-            my $accessor = $caller->make_accessor( $name, $default );
-            $caller->add_method( $name => $accessor );
         }
     }
 
