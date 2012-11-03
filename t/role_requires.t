@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 use Test::Exception;
-use Test::More tests => 2;
+use Test::More tests => 3;
 
 $INC{'MyComponent.pm'}++;
 

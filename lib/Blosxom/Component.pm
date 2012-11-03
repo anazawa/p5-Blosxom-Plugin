@@ -68,6 +68,12 @@ Base class for Blosxom components.
 
 =over 4
 
+=item $class->requires
+
+Declares a list of methods that must be defined to load this component.
+
+  __PACKAGE__->requires(qw/req1 req2/);
+
 =item $class->mk_accessors
 
   __PACKAGE__->mk_accessors(qw/foo bar baz/);
