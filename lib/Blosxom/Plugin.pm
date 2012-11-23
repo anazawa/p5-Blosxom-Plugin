@@ -9,7 +9,7 @@ our $VERSION = '0.02002';
 
 our @EXPORT = qw( init mk_accessors requires );
 
-my %requires;
+my ( %requires, %attribute_of );
 
 sub requires {
     my ( $class, @methods ) = @_;
@@ -36,22 +36,11 @@ sub init {
     return;
 }
 
-my %attribute_of;
-
-sub _make_accessor {
-    my $name    = shift;
-    my $default = shift || sub {};
-
-    return sub {
-        my $class = shift;
-        my $attribute = $attribute_of{ $class } ||= {};
-        return $attribute->{ $name } = shift if @_;
-        return $attribute->{ $name } if exists $attribute->{ $name };
-        $attribute->{ $name } = $class->$default;
-    };
+sub end {
+    my $class = shift;
+    delete $attribute_of{ $class };
+    return;
 }
-
-sub end { delete $attribute_of{$_[0]} }
 
 sub dump {
     my $class = shift;
@@ -68,6 +57,18 @@ sub mk_accessors {
         my $default = ref $_[0] eq 'CODE' ? shift : undef;
         *{ "$class\::$field" } = _make_accessor( $field, $default );
     }
+}
+
+sub _make_accessor {
+    my $name    = shift;
+    my $default = shift || sub {};
+
+    return sub {
+        my $attribute = $attribute_of{$_[0]} ||= {};
+        return $attribute->{ $name } = $_[1] if @_ == 2;
+        return $attribute->{ $name } if exists $attribute->{ $name };
+        return $attribute->{ $name } = $_[0]->$default;
+    };
 }
 
 sub component_base_class { __PACKAGE__ }
@@ -124,11 +125,7 @@ sub load_components {
     return;
 }
 
-sub add_attribute {
-    my ( $class, $name, $default ) = @_;
-    my $accessor = _make_accessor( $name, $default );
-    $class->add_method( $name => $accessor );
-}
+sub add_attribute { shift->add_method( $_[0] => _make_accessor(@_) ) }
 
 sub has_method {
     my ( $class, $method ) = @_;

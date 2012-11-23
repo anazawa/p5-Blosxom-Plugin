@@ -1,7 +1,6 @@
 use strict;
 use parent 'Blosxom::Plugin::Web';
-#use Test::More tests => 18;
-use Test::More skip_all => 'obsolete';
+use Test::More tests => 18;
 
 my $class = __PACKAGE__;
 

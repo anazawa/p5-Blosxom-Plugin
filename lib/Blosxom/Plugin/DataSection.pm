@@ -2,6 +2,7 @@ package Blosxom::Plugin::DataSection;
 use strict;
 use warnings;
 use Blosxom::Plugin;
+use Carp qw//;
 use Data::Section::Simple;
 
 __PACKAGE__->mk_accessors(
@@ -20,10 +21,7 @@ sub merge_data_section_into {
     my $merge_into   = shift;
     my $data_section = $class->data_section;
 
-    if ( ref $merge_into ne 'HASH' ) {
-        require Carp;
-        Carp::croak( 'Must provide a HASH reference' );
-    }
+    Carp::croak( 'Not a HASH reference' ) if ref $merge_into ne 'HASH';
 
     for my $name ( keys %{$data_section} ) {
         if ( my ($chunk, $flavour) = $name =~ /(.+)\.([^.]+)/ ) {

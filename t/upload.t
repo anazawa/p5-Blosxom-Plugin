@@ -1,8 +1,7 @@
 use strict;
 use FindBin;
 use Blosxom::Plugin::Web::Request;
-#use Test::More tests => 10;
-use Test::More skip_all => 'obsolete';
+use Test::More tests => 10;
 
 # Stolen from CGI.pm
 
