@@ -25,9 +25,10 @@ sub init {
     my $stash  = do { no strict 'refs'; \%{"$class\::"} };
 
     if ( my $requires = $requires{$class} ) {
-        my @methods = grep { !$caller->can($_) } @{$requires};
-        croak "Can't apply '$class' to '$caller' - missing " .
-              join( ', ', @methods ) if @methods;
+        if ( my @methods = grep { !$caller->can($_) } @{$requires} ) {
+            my $methods = join ', ', @methods;
+            croak "Can't apply '$class' to '$caller' - missing $methods";
+        }
     }
 
     if ( my $attribute = $attribute_of{$class} ) {
