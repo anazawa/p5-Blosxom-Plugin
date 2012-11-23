@@ -3,13 +3,42 @@ use 5.008_009;
 use strict;
 use warnings;
 use Carp qw/croak/;
+use Exporter 'import';
 
 our $VERSION = '0.02002';
 
+our @EXPORT = qw( init mk_accessors requires );
+
+my %requires;
+
+sub requires {
+    my ( $class, @methods ) = @_;
+    push @{ $requires{$class} ||= [] }, @methods;
+}
+
+sub init {
+    my $class  = shift;
+    my $caller = shift;
+    my $stash  = do { no strict 'refs'; \%{"$class\::"} };
+
+    if ( my $requires = $requires{$class} ) {
+        if ( my @methods = grep { !$caller->can($_) } @{$requires} ) {
+            my $methods = join ', ', @methods;
+            croak "Can't apply '$class' to '$caller' - missing $methods";
+        }
+    }
+
+    while ( my ($name, $glob) = each %{$stash} ) {
+        next if !defined *{$glob}{CODE} or grep {$name eq $_} @EXPORT;
+        $caller->add_method( $name => *{$glob}{CODE} );
+    }
+
+    return;
+}
+
 my %attribute_of;
 
-sub make_accessor {
-    my $class   = shift;
+sub _make_accessor {
     my $name    = shift;
     my $default = shift || sub {};
 
@@ -22,11 +51,7 @@ sub make_accessor {
     };
 }
 
-sub end {
-    my $class = shift;
-    %{ $attribute_of{$class} } = () if exists $attribute_of{ $class };
-    return;
-}
+sub end { delete $attribute_of{$_[0]} }
 
 sub dump {
     my $class = shift;
@@ -41,11 +66,11 @@ sub mk_accessors {
     while ( @_ ) {
         my $field = shift;
         my $default = ref $_[0] eq 'CODE' ? shift : undef;
-        *{ "$class\::$field" } = $class->make_accessor( $field, $default );
+        *{ "$class\::$field" } = _make_accessor( $field, $default );
     }
 }
 
-sub component_base_class { 'Blosxom::Component' }
+sub component_base_class { __PACKAGE__ }
 
 sub load_components {
     my $class  = shift;
@@ -101,7 +126,7 @@ sub load_components {
 
 sub add_attribute {
     my ( $class, $name, $default ) = @_;
-    my $accessor = $class->make_accessor( $name, $default );
+    my $accessor = _make_accessor( $name, $default );
     $class->add_method( $name => $accessor );
 }
 

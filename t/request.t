@@ -1,6 +1,7 @@
 use strict;
 use Blosxom::Plugin::Web::Request;
-use Test::More tests => 17;
+#use Test::More tests => 17;
+use Test::More skip_all => 'obsolete';
 
 local $ENV{QUERY_STRING}    = 'game=chess&game=checkers&weather=dull';
 local $ENV{HTTP_COOKIE}     = 'foo=123; bar=qwerty; baz=wibble; qux=a1';

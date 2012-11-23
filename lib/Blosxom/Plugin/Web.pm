@@ -5,6 +5,8 @@ use parent 'Blosxom::Plugin';
 
 __PACKAGE__->load_components( 'DataSection' );
 
+sub component_base_class { 'Blosxom::Plugin' }
+
 my $request;
 
 sub request {
