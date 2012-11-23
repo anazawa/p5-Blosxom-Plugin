@@ -1,5 +1,6 @@
 Revision history for Perl extension Blosxom::Plugin.
 
+0.02003  Nov 24th, 2012
   - Requires CGI.pm 3.51 or higher. Thanks to CPAN testers :)
   - Components don't need to inherit from Blosxom::Component any more.
     Blosxom::Plugin exports init(), requires() and mk_accessors():

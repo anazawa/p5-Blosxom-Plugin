@@ -5,7 +5,7 @@ use warnings;
 use Carp qw/croak/;
 use Exporter 'import';
 
-our $VERSION = '0.02002';
+our $VERSION = '0.02003';
 
 our @EXPORT = qw( init mk_accessors requires );
 
