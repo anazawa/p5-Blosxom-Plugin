@@ -6,7 +6,7 @@ use Test::More tests => 3;
 $INC{'MyComponent.pm'}++;
 
 package MyComponent;
-use Blosxom::Plugin;
+use parent 'Blosxom::Component';
 
 __PACKAGE__->requires(qw/req1 req2/);
 

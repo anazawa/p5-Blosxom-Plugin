@@ -1,7 +1,50 @@
 package Blosxom::Component;
 use strict;
 use warnings;
-use Blosxom::Plugin;
+use Carp qw/croak/;
+
+my ( %attribute_of, %requires );
+
+sub requires {
+    my ( $class, @methods ) = @_;
+    push @{ $requires{$class} ||= [] }, @methods;
+}
+
+sub mk_accessors {
+    my $class = shift;
+    while ( @_ ) {
+        my $field = shift;
+        my $default = ref $_[0] eq 'CODE' ? shift : undef;
+        $attribute_of{ $class }{ $field } = $default;
+    }
+}
+
+sub init {
+    my $class  = shift;
+    my $caller = shift;
+    my $stash  = do { no strict 'refs'; \%{"$class\::"} };
+
+    if ( my $requires = $requires{$class} ) {
+        my @methods = grep { !$caller->can($_) } @{$requires};
+        croak "Can't apply '$class' to '$caller' - missing " .
+              join( ', ', @methods ) if @methods;
+    }
+
+    if ( my $attribute = $attribute_of{$class} ) {
+        while ( my ($field, $default) = each %{$attribute} ) {
+            $caller->add_attribute( $field, $default );
+        }
+    }
+
+    # NOTE: use keys() instead
+    while ( my ($name, $glob) = each %{$stash} ) {
+        if ( defined *{$glob}{CODE} and $name ne 'init' ) {
+            $caller->add_method( $name => *{$glob}{CODE} );
+        }
+    }
+
+    return;
+}
 
 1;
 

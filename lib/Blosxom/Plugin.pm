@@ -3,93 +3,84 @@ use 5.008_009;
 use strict;
 use warnings;
 use Carp qw/croak/;
-use Exporter 'import';
 
 our $VERSION = '0.02003';
 
-our @EXPORT = qw( init mk_accessors requires );
+my %attribute_of;
 
-my ( %requires, %attribute_of );
+sub make_accessor {
+    my $package   = shift;
+    my $name      = shift;
+    my $default   = shift;
+    my $attribute = $attribute_of{$package} ||= {};
 
-sub requires {
-    my ( $class, @methods ) = @_;
-    push @{ $requires{$class} ||= [] }, @methods;
-}
-
-sub init {
-    my $class  = shift;
-    my $caller = shift;
-    my $stash  = do { no strict 'refs'; \%{"$class\::"} };
-
-    if ( my $requires = $requires{$class} ) {
-        if ( my @methods = grep { !$caller->can($_) } @{$requires} ) {
-            my $methods = join ', ', @methods;
-            croak "Can't apply '$class' to '$caller' - missing $methods";
-        }
+    if ( ref $default eq 'CODE' ) {
+        return sub {
+            return $attribute->{ $name } = $_[1] if @_ == 2;
+            return $attribute->{ $name } if exists $attribute->{ $name };
+            return $attribute->{ $name } = $package->$default;
+        };
     }
-
-    while ( my ($name, $glob) = each %{$stash} ) {
-        next if !defined *{$glob}{CODE} or grep {$name eq $_} @EXPORT;
-        $caller->add_method( $name => *{$glob}{CODE} );
+    elsif ( defined $default ) {
+        return sub {
+            return $attribute->{ $name } = $_[1] if @_ == 2;
+            return $attribute->{ $name } if exists $attribute->{ $name };
+            return $attribute->{ $name } = $default;
+        };
+    }
+    else {
+        return sub {
+            @_ > 1 ? $attribute->{ $name } = $_[1] : $attribute->{ $name };
+        };
     }
 
     return;
 }
 
-sub end {
-    my $class = shift;
-    delete $attribute_of{ $class };
-    return;
-}
+sub end { %{ $attribute_of{$_[0]} } = () if exists $attribute_of{$_[0]} }
 
 sub dump {
-    my $class = shift;
+    my $package = shift;
     require Data::Dumper;
     local $Data::Dumper::Maxdepth = shift || 1;
-    Data::Dumper::Dumper( $attribute_of{$class} );
+    Data::Dumper::Dumper( $attribute_of{$package} );
 }
 
 sub mk_accessors {
-    my $class = shift;
+    my $package = shift;
     no strict 'refs';
     while ( @_ ) {
-        my $field = shift;
-        my $default = ref $_[0] eq 'CODE' ? shift : undef;
-        *{ "$class\::$field" } = _make_accessor( $field, $default );
+        my $name = shift;
+        my $builder = ref $_[0] eq 'CODE' ? shift : undef;
+        *{ "$package\::$name" } = $package->make_accessor( $name, $builder );
     }
-}
-
-sub _make_accessor {
-    my $name    = shift;
-    my $default = shift || sub {};
-
-    return sub {
-        my $attribute = $attribute_of{$_[0]} ||= {};
-        return $attribute->{ $name } = $_[1] if @_ == 2;
-        return $attribute->{ $name } if exists $attribute->{ $name };
-        return $attribute->{ $name } = $_[0]->$default;
-    };
 }
 
 sub component_base_class { __PACKAGE__ }
 
 sub load_components {
-    my $class  = shift;
-    my $prefix = $class->component_base_class;
+    my $package = shift;
+    my @args    = @_;
+    my $prefix  = $package->component_base_class;
+
+    local *add_component = sub {
+        my ( $pkg, $comp, $config ) = @_;
+        push @args, ref $config eq 'HASH' ? ($comp, $config) : $comp;
+    };
 
     my ( $component, %has_conflict, %code_of );
 
     local *add_method = sub {
-        my ( $class, $method, $code ) = @_;
-        return if defined &{ "$class\::$method" };
-        push @{ $has_conflict{$method} ||= [] }, $component;
-        $code_of{ $method } = $code;
-        return;
+        my ( $pkg, $method, $code ) = @_;
+        unless ( defined &{"$package\::$method"} ) {
+            push @{ $has_conflict{$method} ||= [] }, $component;
+            $code_of{ $method } = $code;
+        }
     };
 
-    while ( @_ ) {
+    while ( @args ) {
         $component = do {
-            my $class = shift;
+            my $class = shift @args;
 
             unless ( $class =~ s/^\+// or $class =~ /^$prefix/ ) {
                 $class = "$prefix\::$class";
@@ -101,16 +92,16 @@ sub load_components {
             $class;
         };
 
-        my $config = ref $_[0] eq 'HASH' ? shift : undef;
+        my $config = ref $args[0] eq 'HASH' ? shift @args : undef;
 
-        $component->init( $class, $config );
+        $component->init( $package, $config );
     }
 
     if ( %code_of ) {
         no strict 'refs';
-        while ( my ($method, $components) = each %has_conflict ) {
+        while ( my ( $method, $components ) = each %has_conflict ) {
             delete $has_conflict{ $method } if @{ $components } == 1;
-            *{ "$class\::$method" } = delete $code_of{ $method };
+            *{ "$package\::$method" } = delete $code_of{ $method };
         }
     }
 
@@ -118,19 +109,20 @@ sub load_components {
         croak join "\n", map {
             "Due to a method name conflict between components " .
             "'" . join( ' and ', sort @{ $has_conflict{$_} } ) . "', " .
-            "the method '$_' must be implemented by '$class'";
+            "the method '$_' must be implemented by '$package'";
         } keys %has_conflict;
     }
 
     return;
 }
 
-sub add_attribute { shift->add_method( $_[0] => _make_accessor(@_) ) }
-
-sub has_method {
-    my ( $class, $method ) = @_;
-    defined &{ "$class\::$method" };
+sub add_attribute {
+    my ( $package, $attribute, $builder ) = @_;
+    my $accessor = $package->make_accessor( $attribute, $builder );
+    $package->add_method( $attribute => $accessor );
 }
+
+sub has_method { defined &{"$_[0]::$_[1]"} }
 
 1;
 
