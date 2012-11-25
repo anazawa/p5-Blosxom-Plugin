@@ -63,12 +63,10 @@ sub load_components {
     my @args    = @_;
     my $prefix  = $package->component_base_class;
 
-    local *add_component = sub {
-        my ( $pkg, $comp, $config ) = @_;
-        push @args, ref $config eq 'HASH' ? ($comp, $config) : $comp;
-    };
+    my ( $component, %is_loaded, %has_conflict, %code_of );
 
-    my ( $component, %has_conflict, %code_of );
+    local *add_component 
+        = sub { push @args, ref $_[2] eq 'HASH' ? @_[1, 2] : $_[1] };
 
     local *add_method = sub {
         my ( $pkg, $method, $code ) = @_;
@@ -94,7 +92,7 @@ sub load_components {
 
         my $config = ref $args[0] eq 'HASH' ? shift @args : undef;
 
-        $component->init( $package, $config );
+        $is_loaded{$component}++ || $component->init( $package, $config );
     }
 
     if ( %code_of ) {
