@@ -36,15 +36,6 @@ sub init {
 package My::Component::3;
 use parent -norequire, 'My::Component';
 
-sub init {
-    my ( $class, $caller, $config ) = @_;
-    $caller->add_component( '+My::Component::4' );
-    $class->SUPER::init( $caller, $config );
-}
-
-package My::Component::4;
-use parent -norequire, 'My::Component';
-
 package MyPlugin;
 use parent 'Blosxom::Plugin';
 
@@ -60,5 +51,4 @@ is_deeply \@got, [
     [ 'My::Component::1', 'MyPlugin', undef        ],
     [ 'My::Component::2', 'MyPlugin', { opt => 2 } ],
     [ 'My::Component::3', 'MyPlugin', undef        ],
-    [ 'My::Component::4', 'MyPlugin', undef        ],
 ];

@@ -6,7 +6,56 @@ use Carp qw/croak/;
 
 our $VERSION = '0.02003';
 
+sub import {
+    my $class     = shift;
+    my $component = scalar caller;
+    my $stash     = do { no strict 'refs'; \%{"$component\::"} };
+
+    my ( %is_excluded, @requires );
+
+    my %export = (
+        init => sub {
+            my ( $comp, $plugin ) = @_;
+
+            if ( my @methods = grep { !$plugin->can($_) } @requires ) {
+                my $methods = join ', ', @methods;
+                croak "Can't apply '$comp' to '$plugin' - missing $methods";
+            }
+
+            while ( my ($name, $glob) = each %{$stash} ) {
+                if ( defined *{$glob}{CODE} and !$is_excluded{$name} ) {
+                    $plugin->add_method( $name => *{$glob}{CODE} );
+                }
+            }
+
+            return;
+        },
+        requires => sub { shift; push @requires, @_ },
+    );
+
+    { # export mixin methods
+        no strict 'refs';
+        while ( my ($method, $code) = each %export ) {
+            *{ "$component\::$method" } = $code;
+        }
+    }
+
+    %is_excluded = do {
+        map { $_ => 1 } grep { defined *{$stash->{$_}} } keys %{$stash};
+    };
+
+    return;
+}
+
 my %attribute_of;
+
+sub mk_accessors {
+    my $package = shift;
+    no strict 'refs';
+    while ( my ($field, $default) = splice @_, 0, 2 ) {
+        *{"$package\::$field"} = $package->make_accessor($field, $default);
+    }
+}
 
 sub make_accessor {
     my $package   = shift;
@@ -16,21 +65,21 @@ sub make_accessor {
 
     if ( ref $default eq 'CODE' ) {
         return sub {
-            return $attribute->{ $name } = $_[1] if @_ == 2;
-            return $attribute->{ $name } if exists $attribute->{ $name };
-            return $attribute->{ $name } = $package->$default;
+            return $attribute->{$name} = $_[1] if @_ == 2;
+            return $attribute->{$name} if exists $attribute->{$name};
+            return $attribute->{$name} = $package->$default;
         };
     }
     elsif ( defined $default ) {
         return sub {
-            return $attribute->{ $name } = $_[1] if @_ == 2;
-            return $attribute->{ $name } if exists $attribute->{ $name };
-            return $attribute->{ $name } = $default;
+            return $attribute->{$name} = $_[1] if @_ == 2;
+            return $attribute->{$name} if exists $attribute->{$name};
+            return $attribute->{$name} = $default;
         };
     }
     else {
         return sub {
-            @_ > 1 ? $attribute->{ $name } = $_[1] : $attribute->{ $name };
+            @_ > 1 ? $attribute->{$name} = $_[1] : $attribute->{$name};
         };
     }
 
@@ -44,16 +93,6 @@ sub dump {
     require Data::Dumper;
     local $Data::Dumper::Maxdepth = shift || 1;
     Data::Dumper::Dumper( $attribute_of{$package} );
-}
-
-sub mk_accessors {
-    my $package = shift;
-    no strict 'refs';
-    while ( @_ ) {
-        my $name = shift;
-        my $builder = ref $_[0] eq 'CODE' ? shift : undef;
-        *{ "$package\::$name" } = $package->make_accessor( $name, $builder );
-    }
 }
 
 sub component_base_class { __PACKAGE__ }
@@ -92,7 +131,7 @@ sub load_components {
 
         my $config = ref $args[0] eq 'HASH' ? shift @args : undef;
 
-        $is_loaded{$component}++ || $component->init( $package, $config );
+        $component->init( $package, $config ) if !$is_loaded{$component}++;
     }
 
     if ( %code_of ) {
@@ -207,9 +246,9 @@ with no additional parameters.
   use Path::Class::File;
 
   __PACKAGE__->mk_accessors(
-      'path',
+      'path' => undef,
       'file' => sub {
-          my $class = shift;
+          my $class = shift; # => "my_plugin"
           Path::Class::File->new( $class->path );
       },
   );

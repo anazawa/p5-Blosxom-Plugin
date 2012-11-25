@@ -3,7 +3,12 @@ use strict;
 use warnings;
 use Carp qw/croak/;
 
-my ( %attribute_of, %requires );
+my ( %attribute_of, %requires, %component_of );
+
+sub load_components {
+    my ( $class, @components ) = @_;
+    push @{ $component_of{$class} ||= [] }, @_;
+}
 
 sub requires {
     my ( $class, @methods ) = @_;
@@ -24,10 +29,20 @@ sub init {
     my $caller = shift;
     my $stash  = do { no strict 'refs'; \%{"$class\::"} };
 
+    if ( my $components = $component_of{$class} ) {
+        my @args = @{ $components };
+        while ( @args ) {
+            my $component = shift;
+            my $config = ref $args[0] eq 'HASH' ? shift @args : undef;
+            $caller->add_component( $component => $config );
+        }
+    }
+
     if ( my $requires = $requires{$class} ) {
-        my @methods = grep { !$caller->can($_) } @{$requires};
-        croak "Can't apply '$class' to '$caller' - missing " .
-              join( ', ', @methods ) if @methods;
+        if ( my @methods = grep { !$caller->can($_) } @{$requires} ) {
+            my $methods = join ', ', @methods;
+            croak "Can't apply '$class' to '$caller' - missing $methods";
+        }
     }
 
     if ( my $attribute = $attribute_of{$class} ) {
